@@ -1,0 +1,32 @@
+﻿<Window x:Class="BiliRaffle.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BiliRaffle"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="297.5" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" WindowStyle="None">
+    <Window.DataContext>
+        <local:ViewModel/>
+    </Window.DataContext>
+    <Grid>
+
+        <Label Margin="0,0,84,414" Background="#02FFFFFF" Grid.RowSpan="2">
+            <TextBlock Margin="5,0" FontSize="18" FontWeight="Bold" >抽奖工具</TextBlock>
+        </Label>
+        <Label Margin="219,0,41,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2">
+            <TextBlock FontSize="18" FontWeight="Bold" ><Run Text="-"/></TextBlock>
+        </Label>
+        <Label Margin="262,0,0,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2">
+            <TextBlock FontSize="18" FontWeight="Bold" ><Run Text="×"/></TextBlock>
+        </Label>
+        <Rectangle Margin="10,36,10,412" Fill="#FF636363" Height="1"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Height="24" Margin="11,55,0,0" TextWrapping="Wrap" Text="抽奖地址：" VerticalAlignment="Top" Width="69"/>
+        <TextBox x:Name="TB_Url" Height="23" Margin="35,80,35,0" Text="{Binding Main.Url, Mode=TwoWay}" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Height="24" Margin="11,110,0,0" TextWrapping="Wrap" Text="中奖人数：" VerticalAlignment="Top" Width="69"/>
+        <TextBox x:Name="TB_Num" Height="23" Margin="35,135,35,0" Text="{Binding Main.Num, Mode=TwoWay}" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <CheckBox x:Name="CB_IsOneChance" Content="重复不计" HorizontalAlignment="Left" Margin="24,185,0,0" VerticalAlignment="Top" IsChecked="{Binding Main.IsOneChance}"/>
+        <Button x:Name="Btn_Start" Content="开始抽奖" Margin="105,178,105,0" VerticalAlignment="Top" Height="28" Command="{Binding Main.Start}"/>
+        <TextBox x:Name="TB_Msg" HorizontalAlignment="Left" Height="229" Margin="10,211,0,0" TextWrapping="Wrap" Text="{Binding Main.Msg}" VerticalAlignment="Top" Width="278" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" AllowDrop="False" Focusable="False" IsReadOnly="True" AcceptsReturn="True" TextChanged="TB_Msg_TextChanged"/>
+    </Grid>
+</Window>
