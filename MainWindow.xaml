@@ -11,13 +11,13 @@
     </Window.DataContext>
     <Grid>
 
-        <Label Margin="0,0,84,414" Background="#02FFFFFF" Grid.RowSpan="2">
+        <Label Margin="0,0,84,414" Background="#02FFFFFF" Grid.RowSpan="2" MouseDown="Label_MouseDown">
             <TextBlock Margin="5,0" FontSize="18" FontWeight="Bold" >抽奖工具</TextBlock>
         </Label>
-        <Label Margin="219,0,41,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2">
+        <Label Margin="219,0,41,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2" MouseUp="Label_MouseUp" Cursor="Hand" ToolTip="最小化">
             <TextBlock FontSize="18" FontWeight="Bold" ><Run Text="-"/></TextBlock>
         </Label>
-        <Label Margin="262,0,0,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2">
+        <Label Margin="262,0,0,414" Background="#02FFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2" MouseUp="Label_MouseUp_1" Cursor="Hand" ToolTip="关闭">
             <TextBlock FontSize="18" FontWeight="Bold" ><Run Text="×"/></TextBlock>
         </Label>
         <Rectangle Margin="10,36,10,412" Fill="#FF636363" Height="1"/>

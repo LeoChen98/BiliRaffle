@@ -3,16 +3,39 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Net;
-using System.Threading;
 
 namespace BiliRaffle
 {
     class Raffle
     {
+        private static string _Cookies;
+        public static string Cookies {
+            get
+            {
+                if (string.IsNullOrEmpty(_Cookies))
+                {
+                re:
+                    if ((bool)App.Current.Dispatcher.Invoke(() => {
+                        return (new LoginWindow()).ShowDialog();
+                    }))
+                        return _Cookies;
+                    else
+                        goto re;
+                }
+                else
+                {
+                    return _Cookies;
+                }
+            }
+            set
+            {
+                _Cookies = value;
+            }
+        }
+
         /// <summary>
         /// 开始抽奖
         /// </summary>
@@ -21,29 +44,39 @@ namespace BiliRaffle
         /// <param name="OneChance">只有一次机会</param>
         public static void Start( string url,int num = 1, bool OneChance = false)
         {
+            ViewModel.Main.PushMsg("---------抽奖开始---------");
+
             url = url.Split('?')[0];
             string[] tmp = url.Split('/');
             switch (tmp[2])
             {
                 case "t.bilibili.com":
+                    ViewModel.Main.PushMsg("---------抽奖设置---------");
                     ViewModel.Main.PushMsg("抽奖地址：" + url + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复：" + OneChance.ToString());
-                    T_Raffle(tmp[tmp.Length-1], num);
+                    ViewModel.Main.PushMsg("---------抽奖信息---------");
+
+                    int[] rs = T_Raffle(tmp[3], num, OneChance);
+
+                    ViewModel.Main.PushMsg("---------中奖名单---------");
+                    foreach (int i in rs)
+                    {
+                        ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
+                    }
+                    ViewModel.Main.PushMsg("---------抽奖结束---------");
                     break;
 
                 case "h.bilibili.com":
-                    
+
                     break;
 
                 case "www.bilibili.com":
-                    
+
                     break;
 
                 default:
                     break;
             }
         }
-
-        static Task FansTask;
         
         /// <summary>
         /// 开始抽奖（异步）
@@ -54,8 +87,6 @@ namespace BiliRaffle
         public static async void StartAsync(string url, int num = 1, bool OneChance = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
-            ViewModel.Main.PushMsg("获取粉丝列表...");
-            //FansTask = GetFansAsync();
 
             url = url.Split('?')[0];
             string[] tmp = url.Split('/');
@@ -89,66 +120,6 @@ namespace BiliRaffle
             }
         }
 
-        private static Task GetFansAsync()
-        {
-            return Task.Run(() =>
-            {
-                Fans_Data data = new Fans_Data();
-                List<int> uids = new List<int>();
-                int pn = 1;
-                while (pn * 50 < data.total)
-                {
-                    string str = Http.GetBody("https://api.bilibili.com/x/relation/followers?vmid=" + hid + "&pn=" + pn + "&ps=50&order=desc", GetCookies(cookies));
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        JObject obj = JObject.Parse(str);
-                        if ((int)obj["code"] == 0)
-                        {
-                            data = JsonConvert.DeserializeObject<Fans_Data>(obj["data"].ToString());
-                            foreach (Fans_Data.Fans u in data.list)
-                            {
-                                uids.Add(u.uid);
-                            }
-                        }
-                    }
-
-                    pn++;
-                }
-
-                Fans = uids.ToArray();
-                ViewModel.Main.PushMsg("共获取到" + data.total + "个粉丝uid。");
-            });
-        }
-
-        private static void GetFans()
-        {
-            Fans_Data data = new Fans_Data();
-            List<int> uids = new List<int>();
-            int pn = 1;
-            while (pn * 50 < data.total)
-            {
-                string str = Http.GetBody("https://api.bilibili.com/x/relation/followers?vmid=" + hid + "&pn=" + pn + "&ps=50&order=desc", GetCookies(cookies));
-                if (!string.IsNullOrEmpty(str))
-                {
-                    JObject obj = JObject.Parse(str);
-                    if ((int)obj["code"] == 0)
-                    {
-                        data = JsonConvert.DeserializeObject<Fans_Data>(obj["data"].ToString());
-                        foreach (Fans_Data.Fans u in data.list)
-                        {
-                            uids.Add(u.uid);
-                        }
-                    }
-                }
-
-                pn++;
-                Thread.Sleep(1000);
-            }
-
-            Fans = uids.ToArray();
-            ViewModel.Main.PushMsg("共获取到" + data.total + "个粉丝uid。");
-        }
-
         /// <summary>
         /// 获取cookies实例
         /// </summary>
@@ -176,17 +147,6 @@ namespace BiliRaffle
             }
         }
 
-        private class Fans_Data
-        {
-            public int total = 51;
-            public Fans[] list;
-
-            public class Fans
-            {
-                public int uid;
-            }
-        }
-
         /// <summary>
         /// 动态抽奖
         /// </summary>
@@ -206,15 +166,18 @@ namespace BiliRaffle
                 if (!string.IsNullOrEmpty(str))
                 {
                     JObject obj = JObject.Parse(str);
-                    if((int)obj["code"] == 0)
+                    if ((int)obj["code"] == 0)
                     {
                         Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
 
-                        if (i == 0) ViewModel.Main.PushMsg("共有【" + Data.total_count + "】条转发。");
+                        if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
 
-                        foreach (T_Repost_Data.comment comment in Data.comments)
+                        if (Data.comments.Length != 0)
                         {
-                            if(!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
+                            foreach (T_Repost_Data.comment comment in Data.comments)
+                            {
+                                if (!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
+                            }
                         }
                     }
                 }
@@ -224,13 +187,11 @@ namespace BiliRaffle
             ViewModel.Main.PushMsg("共统计到" + uids.Count + "个（次）uid");
 
             Random random = new Random((int)DateTime.Now.ToUniversalTime().Ticks);
-            for(int n = 0; n < num; n++)
+            for (int n = 0; n < num; n++)
             {
             re:
                 int uid = uids[random.Next(0, uids.Count - 1)];
-                bool IRId = IsRaffleId(uid);
-                bool Repeated = rs.Contains(uid);
-                if (!IRId && !Repeated)
+                if (IsFollowing(uid) && !IsRaffleId(uid) && !rs.Contains(uid))
                 {
                     rs[n] = uid;
                     ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
@@ -283,15 +244,12 @@ namespace BiliRaffle
 
                 ViewModel.Main.PushMsg("共统计到" + uids.Count + "个（次）uid");
 
-                //FansTask.Wait();
-
                 Random random = new Random((int)DateTime.Now.ToUniversalTime().Ticks);
                 for (int n = 0; n < num; n++)
                 {
                 re:
                     int uid = uids[random.Next(0, uids.Count - 1)];
-                    //if (IsFollowing(uid) && !IsRaffleId(uid) && !rs.Contains(uid))
-                    if (!IsRaffleId(uid) && !rs.Contains(uid))
+                    if (IsFollowing(uid) && !IsRaffleId(uid) && !rs.Contains(uid))
                     {
                         rs[n] = uid;
                         ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
@@ -312,15 +270,31 @@ namespace BiliRaffle
         /// <returns>是否</returns>
         private static bool IsFollowing(int uid)
         {
-            if (Fans.Contains(uid)) return true;
-            else
+            if (!string.IsNullOrEmpty(Cookies))
             {
-                ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，但未关注，结果无效。");
-                return false;
+                string str = Http.GetBody("https://api.bilibili.com/x/space/acc/relation?mid=" + uid, GetCookies(Cookies));
+                if (!string.IsNullOrEmpty(str))
+                {
+                    JObject obj = JObject.Parse(str);
+                    if((int)obj["code"] == 0)
+                    {
+                        switch ((int)obj["data"]["be_relation"]["attribute"])
+                        {
+                            case 1://悄悄关注
+                            case 2://关注
+                            case 6://互关
+                                return true;
+                            default:
+                                ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，但未关注，结果无效。(relation:" + obj["data"]["be_relation"]["attribute"].ToString() + ")");
+                                return false;
+                        }
+                        
+                    }
+                }
             }
+            ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，但未关注，结果无效。");
+            return false;
         }
-
-        private static int[] Fans;
 
         /// <summary>
         /// 检查是否抽奖号
@@ -404,8 +378,5 @@ namespace BiliRaffle
                 public int uid;
             }
         }
-
-        const int hid = 27234245;
-        const string cookies = "buvid3=F90D9172-0C4C-45E7-B0F7-80ADFC53B139110266infoc; sid=k5d873ft; DedeUserID=27234245; DedeUserID__ckMd5=ad72f46c8576a206; SESSDATA=fcb0ac86%2C1565683207%2C84d4d071; bili_jct=1d467dcb42e99e61feceb14ce5b6cd1c; CURRENT_FNVAL=16; UM_distinctid=16bef8c929b5-032de28c0709d4-e343166-13c680-16bef8c92a087f; finger=b3372c5f; im_notify_type_27234245=0; rpdid=|(J~RYuJRu|Y0J'ulYJ|mY~)m; fts=1563179122; stardustvideo=1; LIVE_PLAYER_TYPE=1; _uuid=5C473D22-208E-ABFD-D8D3-35345A78CD7A95435infoc; LIVE_BUVID=6d833b10ee9f3d1342fb225b93c990a8; LIVE_BUVID__ckMd5=4b3a14596968d841; CURRENT_QUALITY=112; im_local_unread_27234245=0; bp_t_offset_27234245=282676751514399091; im_seqno_27234245=46027";
     }
 }

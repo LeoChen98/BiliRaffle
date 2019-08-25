@@ -1,0 +1,14 @@
+﻿<Window x:Class="BiliRaffle.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BiliRaffle"
+        mc:Ignorable="d"
+        Title="登录B站账号" Height="450" Width="341.6" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Topmost="True">
+    <Grid>
+        <Label Margin="27,42,26.2,349" FontSize="16"  Content="请使用Bilibili手机APP扫描二维码登录" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        <Image x:Name="qrcodeBox" HorizontalAlignment="Left" Height="200" Margin="60,76,0,0" VerticalAlignment="Top" Width="200" />
+        <Label x:Name="lbl_stauts" Content="扫描成功，请在客户端确认操作！" HorizontalAlignment="Center" Margin="60,281,75.2,0" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200" Foreground="#FF00A656" Visibility="Hidden" />
+    </Grid>
+</Window>

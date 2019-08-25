@@ -24,13 +24,26 @@ namespace BiliRaffle
         {
             InitializeComponent();
 
-            //test
-            //Raffle.Start("https://t.bilibili.com/280007008429649914?tab=2", 10);
         }
 
         private void TB_Msg_TextChanged(object sender, TextChangedEventArgs e)
         {
             (sender as TextBox).ScrollToEnd();
+        }
+
+        private void Label_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
+
+        private void Label_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void Label_MouseUp_1(object sender, MouseButtonEventArgs e)
+        {
+            Environment.Exit(0);
         }
     }
 }
