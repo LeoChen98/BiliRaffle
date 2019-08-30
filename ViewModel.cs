@@ -87,6 +87,8 @@ namespace BiliRaffle
         private int _Num = 1;
         private ICommand _Start;
         private string _Url;
+        private bool _CheckFollow = false;
+        private RelayCommand _NoticeLogin;
 
         #endregion Private Fields
 
@@ -139,6 +141,19 @@ namespace BiliRaffle
         }
 
         /// <summary>
+        /// 检查粉丝
+        /// </summary>
+        public bool CheckFollow
+        {
+            get { return _CheckFollow; }
+            set
+            {
+                _CheckFollow = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CheckFollow"));
+            }
+        }
+
+        /// <summary>
         /// 抽奖信息
         /// </summary>
         public string Msg
@@ -180,11 +195,29 @@ namespace BiliRaffle
                             System.Windows.Forms.MessageBox.Show("抽奖地址不能为空！");
                             return;
                         }
-                        Raffle.StartAsync(Url, Num, IsOneChance);
+                        Raffle.StartAsync(Url, Num, IsOneChance,CheckFollow);
                         //Raffle.Start(Url, Num, IsOneChance);
                     });
                 }
                 return _Start;
+            }
+        }
+
+        /// <summary>
+        /// 开始抽奖命令
+        /// </summary>
+        public ICommand NoticeLogin
+        {
+            get
+            {
+                if (_NoticeLogin == null)
+                {
+                    _NoticeLogin = new RelayCommand(() =>
+                    {
+                        System.Windows.Forms.MessageBox.Show("该功能稍后需要登录。");
+                    });
+                }
+                return _NoticeLogin;
             }
         }
 

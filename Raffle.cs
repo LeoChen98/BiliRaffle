@@ -42,7 +42,7 @@ namespace BiliRaffle
         /// <param name="url">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
-        public static void Start( string url,int num = 1, bool OneChance = false)
+        public static void Start( string url,int num = 1, bool OneChance = false,bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
 
@@ -66,14 +66,15 @@ namespace BiliRaffle
                     break;
 
                 case "h.bilibili.com":
-
+                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
                     break;
 
                 case "www.bilibili.com":
-
+                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
                     break;
 
                 default:
+                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
                     break;
             }
         }
@@ -84,7 +85,7 @@ namespace BiliRaffle
         /// <param name="url">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
-        public static async void StartAsync(string url, int num = 1, bool OneChance = false)
+        public static async void StartAsync(string url, int num = 1, bool OneChance = false, bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
 
@@ -97,7 +98,7 @@ namespace BiliRaffle
                     ViewModel.Main.PushMsg("抽奖地址：" + url + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复："+OneChance.ToString());
                     ViewModel.Main.PushMsg("---------抽奖信息---------");
 
-                    int[] rs = await T_RaffleAsync(tmp[3],num,OneChance);
+                    int[] rs = await T_RaffleAsync(tmp[3],num,OneChance,CheckFollow);
 
                     ViewModel.Main.PushMsg("---------中奖名单---------");
                     foreach (int i in rs)
@@ -154,7 +155,7 @@ namespace BiliRaffle
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
         /// <returns>抽奖结果</returns>
-        private static int[] T_Raffle(string id, int num,bool OneChance = false)
+        private static int[] T_Raffle(string id, int num,bool OneChance = false, bool CheckFollow = false)
         {
             T_Repost_Data Data = new T_Repost_Data();
             List<int> uids = new List<int>();
@@ -191,10 +192,25 @@ namespace BiliRaffle
             {
             re:
                 int uid = uids[random.Next(0, uids.Count - 1)];
-                if (IsFollowing(uid) && !IsRaffleId(uid) && !rs.Contains(uid))
+                if (!IsRaffleId(uid) && !rs.Contains(uid))
                 {
-                    rs[n] = uid;
-                    ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                    if (CheckFollow)
+                    {
+                        if (IsFollowing(uid))
+                        {
+                            rs[n] = uid;
+                            ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                        }
+                        else
+                        {
+                            goto re;
+                        }
+                    }
+                    else
+                    {
+                        rs[n] = uid;
+                        ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                    }
                 }
                 else
                 {
@@ -210,7 +226,7 @@ namespace BiliRaffle
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
         /// <returns>抽奖结果</returns>
-        private static Task<int[]> T_RaffleAsync(string id, int num, bool OneChance = false)
+        private static Task<int[]> T_RaffleAsync(string id, int num, bool OneChance = false, bool CheckFollow = false)
         {
             return Task.Run(() =>
             {
@@ -249,10 +265,25 @@ namespace BiliRaffle
                 {
                 re:
                     int uid = uids[random.Next(0, uids.Count - 1)];
-                    if (IsFollowing(uid) && !IsRaffleId(uid) && !rs.Contains(uid))
+                    if (!IsRaffleId(uid) && !rs.Contains(uid))
                     {
-                        rs[n] = uid;
-                        ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                        if (CheckFollow)
+                        {
+                            if (IsFollowing(uid))
+                            {
+                                rs[n] = uid;
+                                ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                            }
+                            else
+                            {
+                                goto re;
+                            }
+                        }
+                        else
+                        {
+                            rs[n] = uid;
+                            ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
+                        }
                     }
                     else
                     {
