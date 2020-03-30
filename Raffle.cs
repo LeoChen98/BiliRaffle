@@ -45,12 +45,13 @@ namespace BiliRaffle
         public static void Start(string urlText, int num = 1, bool OneChance = false, bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
-            var urls = urlText.Split(new char[] { '\r', '\n' });
+            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             List<string> ids = new List<string> { };
             foreach (var urlRaw in urls)
             {
                 var url = urlRaw.Split('?')[0];
                 string[] tmp = url.Split('/');
+                if (tmp.Length < 4) continue;
 
                 switch (tmp[2])
                 {
@@ -96,7 +97,7 @@ namespace BiliRaffle
         public static async void StartAsync(string urlText, int num = 1, bool OneChance = false, bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
-            var urls = urlText.Split(new char[] { '\r', '\n' });
+            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             List<string> ids = new List<string> { };
             foreach(var urlRaw in urls)
             {
