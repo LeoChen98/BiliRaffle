@@ -55,41 +55,50 @@ namespace BiliRaffle
         /// <param name="url">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
-        public static void Start(string url, int num = 1, bool OneChance = false, bool CheckFollow = false)
+        public static void Start(string urlText, int num = 1, bool OneChance = false, bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
-
-            url = url.Split('?')[0];
-            string[] tmp = url.Split('/');
-            switch (tmp[2])
+            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> ids = new List<string> { };
+            foreach (var urlRaw in urls)
             {
-                case "t.bilibili.com":
-                    ViewModel.Main.PushMsg("---------抽奖设置---------");
-                    ViewModel.Main.PushMsg("抽奖地址：" + url + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复：" + OneChance.ToString());
-                    ViewModel.Main.PushMsg("---------抽奖信息---------");
+                var url = urlRaw.Split('?')[0];
+                string[] tmp = url.Split('/');
+                if (tmp.Length < 4) continue;
 
-                    int[] rs = T_Raffle(tmp[3], num, OneChance);
+                switch (tmp[2])
+                {
+                    case "t.bilibili.com":
+                        ids.Add(tmp[3]);
 
-                    ViewModel.Main.PushMsg("---------中奖名单---------");
-                    foreach (int i in rs)
-                    {
-                        ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
-                    }
-                    ViewModel.Main.PushMsg("---------抽奖结束---------");
-                    break;
+                        break;
 
-                case "h.bilibili.com":
-                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
-                    break;
+                    case "h.bilibili.com":
 
-                case "www.bilibili.com":
-                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
-                    break;
+                        break;
 
-                default:
-                    ViewModel.Main.PushMsg("提示：目前只支持动态详情页（域名为t.bilibili.com）的抽奖哦~");
-                    break;
+                    case "www.bilibili.com":
+
+                        break;
+
+                    default:
+                        break;
+                }
+
             }
+
+            ViewModel.Main.PushMsg("---------抽奖设置---------");
+            ViewModel.Main.PushMsg("抽奖地址：" + string.Join(",", ids) + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复：" + OneChance.ToString());
+            ViewModel.Main.PushMsg("---------抽奖信息---------");
+
+            int[] rs = T_Raffle(ids.ToArray(), num, OneChance, CheckFollow);
+
+            ViewModel.Main.PushMsg("---------中奖名单---------");
+            foreach (int i in rs)
+            {
+                ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
+            }
+            ViewModel.Main.PushMsg("---------抽奖结束---------");
         }
 
         /// <summary>
@@ -98,40 +107,50 @@ namespace BiliRaffle
         /// <param name="url">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
-        public static async void StartAsync(string url, int num = 1, bool OneChance = false, bool CheckFollow = false)
+        public static async void StartAsync(string urlText, int num = 1, bool OneChance = false, bool CheckFollow = false)
         {
             ViewModel.Main.PushMsg("---------抽奖开始---------");
-
-            url = url.Split('?')[0];
-            string[] tmp = url.Split('/');
-            switch (tmp[2])
+            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> ids = new List<string> { };
+            foreach(var urlRaw in urls)
             {
-                case "t.bilibili.com":
-                    ViewModel.Main.PushMsg("---------抽奖设置---------");
-                    ViewModel.Main.PushMsg("抽奖地址：" + url + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复：" + OneChance.ToString());
-                    ViewModel.Main.PushMsg("---------抽奖信息---------");
+                var url = urlRaw.Split('?')[0];
+                string[] tmp = url.Split('/');
+                if (tmp.Length < 4) continue;
 
-                    int[] rs = await T_RaffleAsync(tmp[3], num, OneChance, CheckFollow);
+                switch (tmp[2])
+                {
+                    case "t.bilibili.com":
+                        ids.Add(tmp[3]);
+                        
+                        break;
 
-                    ViewModel.Main.PushMsg("---------中奖名单---------");
-                    foreach (int i in rs)
-                    {
-                        ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
-                    }
-                    ViewModel.Main.PushMsg("---------抽奖结束---------");
-                    break;
+                    case "h.bilibili.com":
 
-                case "h.bilibili.com":
+                        break;
 
-                    break;
+                    case "www.bilibili.com":
 
-                case "www.bilibili.com":
+                        break;
 
-                    break;
-
-                default:
-                    break;
+                    default:
+                        break;
+                }
+            
             }
+
+            ViewModel.Main.PushMsg("---------抽奖设置---------");
+            ViewModel.Main.PushMsg("抽奖地址：" + string.Join(",", ids) + "\r\n抽奖类型：动态转发抽奖\r\n中奖人数：" + num + "\r\n不统计重复：" + OneChance.ToString());
+            ViewModel.Main.PushMsg("---------抽奖信息---------");
+
+            int[] rs = await T_RaffleAsync(ids.ToArray(), num, OneChance, CheckFollow);
+
+            ViewModel.Main.PushMsg("---------中奖名单---------");
+            foreach (int i in rs)
+            {
+                ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
+            }
+            ViewModel.Main.PushMsg("---------抽奖结束---------");
         }
 
         #endregion Public Methods
@@ -259,39 +278,47 @@ namespace BiliRaffle
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
         /// <returns>抽奖结果</returns>
-        private static int[] T_Raffle(string id, int num, bool OneChance = false, bool CheckFollow = false)
+        private static int[] T_Raffle(string[] ids, int num,bool OneChance = false, bool CheckFollow = false)
         {
-            T_Repost_Data Data = new T_Repost_Data();
+            
             List<int> uids = new List<int>();
             int[] rs = new int[num];
-            int i = 0;
-            while (Data.has_more)
+            
+            foreach(var id in ids)
             {
-                string str = Http.GetBody("https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/view_repost?dynamic_id=" + id + "&offset=" + i * 20);
-                if (!string.IsNullOrEmpty(str))
+                T_Repost_Data Data = new T_Repost_Data();
+                int i = 0;
+                //ViewModel.Main.PushMsg($"开始收集{id}下的转发");
+                while (Data.has_more)
                 {
-                    JObject obj = JObject.Parse(str);
-                    if ((int)obj["code"] == 0)
+                    string str = Http.GetBody("https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/view_repost?dynamic_id=" + id + "&offset=" + i * 20);
+                    if (!string.IsNullOrEmpty(str))
                     {
-                        Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
-
-                        if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
-
-                        if (Data.comments.Length != 0)
+                        JObject obj = JObject.Parse(str);
+                        if ((int)obj["code"] == 0)
                         {
-                            foreach (T_Repost_Data.comment comment in Data.comments)
+                            Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
+
+                            if (i == 0) ViewModel.Main.PushMsg($"{id} 共有{Data.total_count}条转发。");
+
+                            if (Data.comments.Length != 0)
                             {
-                                if (!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
+                                foreach (T_Repost_Data.comment comment in Data.comments)
+                                {
+                                    if (!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
+                                }
                             }
                         }
                     }
+                    i++;
                 }
-                i++;
             }
+            
 
             ViewModel.Main.PushMsg("共统计到" + uids.Count + "个（次）uid");
 
-            Random random = new Random((int)DateTime.Now.ToUniversalTime().Ticks);
+            Random random = new Random();
+            random.Next();
             for (int n = 0; n < num; n++)
             {
             re:
@@ -331,72 +358,12 @@ namespace BiliRaffle
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
         /// <returns>抽奖结果</returns>
-        private static Task<int[]> T_RaffleAsync(string id, int num, bool OneChance = false, bool CheckFollow = false)
+        private static Task<int[]> T_RaffleAsync(string[] ids, int num, bool OneChance = false, bool CheckFollow = false)
         {
             return Task.Run(() =>
-            {
-                T_Repost_Data Data = new T_Repost_Data();
-                List<int> uids = new List<int>();
-                int[] rs = new int[num];
-                int i = 0;
-                while (Data.has_more)
-                {
-                    string str = Http.GetBody("https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/view_repost?dynamic_id=" + id + "&offset=" + i * 20);
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        JObject obj = JObject.Parse(str);
-                        if ((int)obj["code"] == 0)
-                        {
-                            Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
+                T_Raffle(ids, num, OneChance, CheckFollow)
+                ) ;
 
-                            if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
-
-                            if (Data.comments.Length != 0)
-                            {
-                                foreach (T_Repost_Data.comment comment in Data.comments)
-                                {
-                                    if (!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
-                                }
-                            }
-                        }
-                    }
-                    i++;
-                }
-
-                ViewModel.Main.PushMsg("共统计到" + uids.Count + "个（次）uid");
-
-                Random random = new Random((int)DateTime.Now.ToUniversalTime().Ticks);
-                for (int n = 0; n < num; n++)
-                {
-                re:
-                    int uid = uids[random.Next(0, uids.Count - 1)];
-                    if (!IsRaffleId(uid) && !rs.Contains(uid))
-                    {
-                        if (CheckFollow)
-                        {
-                            if (IsFollowing(uid))
-                            {
-                                rs[n] = uid;
-                                ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
-                            }
-                            else
-                            {
-                                goto re;
-                            }
-                        }
-                        else
-                        {
-                            rs[n] = uid;
-                            ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，有效。");
-                        }
-                    }
-                    else
-                    {
-                        goto re;
-                    }
-                }
-                return rs;
-            });
         }
 
         #endregion Private Methods
