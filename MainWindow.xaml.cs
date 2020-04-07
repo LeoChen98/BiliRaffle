@@ -10,16 +10,16 @@ namespace BiliRaffle
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region Public Constructors
+
         public MainWindow()
         {
             InitializeComponent();
-
         }
 
-        private void TB_Msg_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            (sender as TextBox).ScrollToEnd();
-        }
+        #endregion Public Constructors
+
+        #region Private Methods
 
         private void Label_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -36,9 +36,16 @@ namespace BiliRaffle
             Environment.Exit(0);
         }
 
+        private void TB_Msg_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            (sender as TextBox).ScrollToEnd();
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ViewModel.Main.PushMsg("当前版本：" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()); 
+            ViewModel.Main.PushMsg("当前版本：" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
         }
+
+        #endregion Private Methods
     }
 }

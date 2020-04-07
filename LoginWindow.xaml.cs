@@ -25,12 +25,14 @@ namespace BiliRaffle
         public LoginWindow()
         {
             InitializeComponent();
-
         }
 
         #endregion Public Constructors
 
         #region Public Methods
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
 
         /// <summary>
         /// 显示模式窗口
@@ -53,8 +55,7 @@ namespace BiliRaffle
         }
 
         #endregion Public Methods
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern bool DeleteObject(IntPtr hObject);
+
         #region Private Methods
 
         /// <summary>
