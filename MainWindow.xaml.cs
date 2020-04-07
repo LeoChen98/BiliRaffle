@@ -1,7 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace BiliRaffle
 {
@@ -10,42 +20,41 @@ namespace BiliRaffle
     /// </summary>
     public partial class MainWindow : Window
     {
-        #region Public Constructors
-
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = ViewModel.Main;
         }
 
-        #endregion Public Constructors
 
-        #region Private Methods
-
-        private void Label_MouseDown(object sender, MouseButtonEventArgs e)
+        private void TB_Url_TextChanged(object sender, TextChangedEventArgs e)
         {
-            DragMove();
+            TextBox textBox = sender as TextBox;
+            if (string.IsNullOrEmpty(textBox.Text))
+            {
+                textBox.BorderBrush = new SolidColorBrush(Colors.Red);
+                Lbl_Url_ErrorInfo.Text = "url不能为空！";
+                Lbl_Url_ErrorInfo.Visibility = Visibility.Visible;
+                return;
+            }
+
+            Regex reg = new Regex("(([|http://|https://]+[t.bilibili.com/|h.bilibili.com/|(www\\.|)?bilibili.com/video/(av|AV)|(www\\.|)?bilibili.com/audio/au|(www\\.|)?bilibili.com/read/cv]+\\d+)|(www\\.|)?bilibili.com/read/(BV|bv)[0-9a-zA-Z]{10})\\?*.*");
+            if (reg.IsMatch(textBox.Text))
+            {
+                textBox.BorderBrush = new SolidColorBrush(Colors.Black);
+                Lbl_Url_ErrorInfo.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            textBox.BorderBrush = new SolidColorBrush(Colors.Red);
+            Lbl_Url_ErrorInfo.Text = "非法url！";
+            Lbl_Url_ErrorInfo.Visibility = Visibility.Visible;
         }
 
-        private void Label_MouseUp(object sender, MouseButtonEventArgs e)
+        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            WindowState = WindowState.Minimized;
+            if (e.LeftButton == MouseButtonState.Pressed) DragMove();
         }
-
-        private void Label_MouseUp_1(object sender, MouseButtonEventArgs e)
-        {
-            Environment.Exit(0);
-        }
-
-        private void TB_Msg_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            (sender as TextBox).ScrollToEnd();
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            ViewModel.Main.PushMsg("当前版本：" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
-        }
-
-        #endregion Private Methods
     }
 }

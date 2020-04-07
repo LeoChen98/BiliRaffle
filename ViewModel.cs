@@ -89,6 +89,8 @@ namespace BiliRaffle
         private int _Num = 1;
         private ICommand _Start;
         private string _Url;
+        private bool _AsPlugin=false;
+        private bool _IsValid = false;
 
         #endregion Private Fields
 
@@ -107,6 +109,7 @@ namespace BiliRaffle
         #endregion Public Events
 
         #region Public Properties
+        
 
         /// <summary>
         /// 单例实例
@@ -124,6 +127,22 @@ namespace BiliRaffle
             set
             {
                 _viewmodel = value;
+            }
+        }
+
+        /// <summary>
+        /// 以插件模式运行
+        /// </summary>
+        public bool AsPlugin
+        {
+            get
+            {
+                return _AsPlugin;
+            }
+            set
+            {
+                _AsPlugin = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AsPlugin"));
             }
         }
 
@@ -235,6 +254,15 @@ namespace BiliRaffle
                 _Url = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Url"));
             }
+        }
+
+        /// <summary>
+        /// 指示是否有输入错误
+        /// </summary>
+        public bool IsValid
+        {
+            get { return _IsValid; }
+            set { _IsValid = value;PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsValid")); }
         }
 
         #endregion Public Properties
