@@ -84,7 +84,6 @@ namespace BiliRaffle
                     default:
                         break;
                 }
-
             }
 
             ViewModel.Main.PushMsg("---------抽奖设置---------");
@@ -112,7 +111,7 @@ namespace BiliRaffle
             ViewModel.Main.PushMsg("---------抽奖开始---------");
             var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             List<string> ids = new List<string> { };
-            foreach(var urlRaw in urls)
+            foreach (var urlRaw in urls)
             {
                 var url = urlRaw.Split('?')[0];
                 string[] tmp = url.Split('/');
@@ -122,7 +121,7 @@ namespace BiliRaffle
                 {
                     case "t.bilibili.com":
                         ids.Add(tmp[3]);
-                        
+
                         break;
 
                     case "h.bilibili.com":
@@ -136,7 +135,6 @@ namespace BiliRaffle
                     default:
                         break;
                 }
-            
             }
 
             ViewModel.Main.PushMsg("---------抽奖设置---------");
@@ -203,19 +201,38 @@ namespace BiliRaffle
             return "";
         }
 
-                        if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
-
-                        if (Data.comments.Length != 0)
+        /// <summary>
+        /// 判断是否为粉丝
+        /// </summary>
+        /// <param name="uid">uid</param>
+        /// <returns>是否</returns>
+        private static bool IsFollowing(int uid)
+        {
+            if (!string.IsNullOrEmpty(Cookies))
+            {
+                string str = Http.GetBody("https://api.bilibili.com/x/space/acc/relation?mid=" + uid, GetCookies(Cookies));
+                if (!string.IsNullOrEmpty(str))
+                {
+                    JObject obj = JObject.Parse(str);
+                    if ((int)obj["code"] == 0)
+                    {
+                        switch ((int)obj["data"]["be_relation"]["attribute"])
                         {
-                            foreach (T_Repost_Data.comment comment in Data.comments)
-                            {
-                                if (!uids.Contains(comment.uid) || !OneChance) uids.Add(comment.uid);
-                            }
+                            case 1://悄悄关注
+                            case 2://关注
+                            case 6://互关
+                                return true;
+
+                            default:
+                                ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，但未关注，结果无效。(relation:" + obj["data"]["be_relation"]["attribute"].ToString() + ")");
+                                return false;
                         }
                     }
                 }
-                i++;
             }
+            ViewModel.Main.PushMsg("抽到【" + GetUName(uid) + "（uid:" + uid + "）】中奖，但未关注，结果无效。");
+            return false;
+        }
 
         /// <summary>
         /// 检查是否抽奖号
@@ -259,13 +276,12 @@ namespace BiliRaffle
         /// <param name="num">中奖人数</param>
         /// <param name="OneChance">只有一次机会</param>
         /// <returns>抽奖结果</returns>
-        private static int[] T_Raffle(string[] ids, int num,bool OneChance = false, bool CheckFollow = false)
+        private static int[] T_Raffle(string[] ids, int num, bool OneChance = false, bool CheckFollow = false)
         {
-            
             List<int> uids = new List<int>();
             int[] rs = new int[num];
-            
-            foreach(var id in ids)
+
+            foreach (var id in ids)
             {
                 T_Repost_Data Data = new T_Repost_Data();
                 int i = 0;
@@ -282,7 +298,7 @@ namespace BiliRaffle
 
                             if (i == 0) ViewModel.Main.PushMsg($"{id} 共有{Data.total_count}条转发。");
 
-                            if(Data.comments != null && Data.comments.Length != 0)
+                            if (Data.comments != null && Data.comments.Length != 0)
                             {
                                 foreach (T_Repost_Data.comment comment in Data.comments)
                                 {
@@ -294,7 +310,6 @@ namespace BiliRaffle
                     i++;
                 }
             }
-            
 
             ViewModel.Main.PushMsg("共统计到" + uids.Count + "个（次）uid");
 
@@ -343,8 +358,7 @@ namespace BiliRaffle
         {
             return Task.Run(() =>
                 T_Raffle(ids, num, OneChance, CheckFollow)
-                ) ;
-
+                );
         }
 
         #endregion Private Methods
