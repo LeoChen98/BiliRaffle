@@ -82,13 +82,13 @@ namespace BiliRaffle
         #region Private Fields
 
         private static ViewModel _viewmodel;
+        private bool _CheckFollow = false;
         private bool _IsOneChance = true;
         private string _Msg;
+        private RelayCommand _NoticeLogin;
         private int _Num = 1;
         private ICommand _Start;
         private string _Url;
-        private bool _CheckFollow = false;
-        private RelayCommand _NoticeLogin;
 
         #endregion Private Fields
 
@@ -128,19 +128,6 @@ namespace BiliRaffle
         }
 
         /// <summary>
-        /// 不统计重复
-        /// </summary>
-        public bool IsOneChance
-        {
-            get { return _IsOneChance; }
-            set
-            {
-                _IsOneChance = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOneChance"));
-            }
-        }
-
-        /// <summary>
         /// 检查粉丝
         /// </summary>
         public bool CheckFollow
@@ -154,6 +141,19 @@ namespace BiliRaffle
         }
 
         /// <summary>
+        /// 不统计重复
+        /// </summary>
+        public bool IsOneChance
+        {
+            get { return _IsOneChance; }
+            set
+            {
+                _IsOneChance = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOneChance"));
+            }
+        }
+
+        /// <summary>
         /// 抽奖信息
         /// </summary>
         public string Msg
@@ -163,6 +163,24 @@ namespace BiliRaffle
             {
                 _Msg = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Msg"));
+            }
+        }
+
+        /// <summary>
+        /// 开始抽奖命令
+        /// </summary>
+        public ICommand NoticeLogin
+        {
+            get
+            {
+                if (_NoticeLogin == null)
+                {
+                    _NoticeLogin = new RelayCommand(() =>
+                    {
+                        System.Windows.Forms.MessageBox.Show("该功能稍后需要登录。");
+                    });
+                }
+                return _NoticeLogin;
             }
         }
 
@@ -195,29 +213,11 @@ namespace BiliRaffle
                             System.Windows.Forms.MessageBox.Show("抽奖地址不能为空！");
                             return;
                         }
-                        Raffle.StartAsync(Url, Num, IsOneChance,CheckFollow);
+                        Raffle.StartAsync(Url, Num, IsOneChance, CheckFollow);
                         //Raffle.Start(Url, Num, IsOneChance);
                     });
                 }
                 return _Start;
-            }
-        }
-
-        /// <summary>
-        /// 开始抽奖命令
-        /// </summary>
-        public ICommand NoticeLogin
-        {
-            get
-            {
-                if (_NoticeLogin == null)
-                {
-                    _NoticeLogin = new RelayCommand(() =>
-                    {
-                        System.Windows.Forms.MessageBox.Show("该功能稍后需要登录。");
-                    });
-                }
-                return _NoticeLogin;
             }
         }
 
