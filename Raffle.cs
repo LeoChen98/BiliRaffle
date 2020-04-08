@@ -173,7 +173,7 @@ namespace BiliRaffle
 
                         if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
 
-                        if (Data.comments.Length != 0)
+                        if (Data.comments != null && Data.comments.Length != 0)
                         {
                             foreach (T_Repost_Data.comment comment in Data.comments)
                             {
@@ -246,7 +246,7 @@ namespace BiliRaffle
 
                             if (i == 0) ViewModel.Main.PushMsg("共有" + Data.total_count + "条转发。");
 
-                            if(Data.comments.Length != 0)
+                            if(Data.comments != null && Data.comments.Length != 0)
                             {
                                 foreach (T_Repost_Data.comment comment in Data.comments)
                                 {
