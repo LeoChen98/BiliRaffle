@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace BiliRaffle
         /// <param name="user_agent">User-agent</param>
         /// <param name="specialheaders">除前面之外的Headers</param>
         /// <returns>请求返回体</returns>
+        [DebuggerStepThrough]
         public static string GetBody(string url, CookieCollection cookie = null,
             string referer = "", string user_agent = "", WebHeaderCollection specialheaders = null)
         {
@@ -71,6 +73,7 @@ namespace BiliRaffle
         /// <param name="user_agent">User-agent</param>
         /// <param name="specialheaders">除前面之外的Headers</param>
         /// <returns>请求返回体</returns>
+        [DebuggerStepThrough]
         public static string PostBody(string url, string data = "", CookieCollection cookie = null,
             string contenttype = "application/x-www-form-urlencoded;charset=utf-8", string referer = "", string user_agent = "",
             WebHeaderCollection specialheaders = null)
@@ -128,6 +131,7 @@ namespace BiliRaffle
         /// <param name="user_agent">User-agent</param>
         /// <param name="specialheaders">除前面之外的Headers</param>
         /// <returns>请求返回体</returns>
+        [DebuggerStepThrough]
         public static bool Options(string url, CookieCollection cookie = null,
             string referer = "", string user_agent = "", WebHeaderCollection specialheaders = null)
         {
@@ -249,6 +253,7 @@ namespace BiliRaffle
         /// <param name="user_agent">User-agent</param>
         /// <param name="specialheaders">除前面之外的Headers</param>
         /// <returns>请求返回体</returns>
+        [DebuggerStepThrough]
         public static async Task<string> PutFile(string url, string filename, int start = 0, int length = -1, CookieCollection cookie = null,
             string referer = "", string user_agent = "", WebHeaderCollection specialheaders = null)
         {
