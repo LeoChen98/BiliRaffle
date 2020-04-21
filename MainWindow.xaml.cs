@@ -27,11 +27,11 @@ namespace BiliRaffle
 
         #region Public Methods
 
-        [DllImport("user32.dll")]
-        public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
-
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         public static extern IntPtr GetWindowLongPtr(IntPtr hwnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
         public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
@@ -115,7 +115,7 @@ namespace BiliRaffle
             if (ViewModel.Main.AsPlugin)
             {
                 IntPtr hWnd = new WindowInteropHelper(this).Handle;
-                SetParent(hWnd, new IntPtr(int.Parse(ViewModel.Main.Whwnd,System.Globalization.NumberStyles.HexNumber)));
+                SetParent(hWnd, new IntPtr(int.Parse(ViewModel.Main.Whwnd, System.Globalization.NumberStyles.HexNumber)));
                 Height = 411;
                 ShowInTaskbar = false;
                 IntPtr WndLong = GetWindowLongPtr(hWnd, -20);

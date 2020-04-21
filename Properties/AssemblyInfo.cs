@@ -50,4 +50,3 @@ using System.Windows;
 [assembly: AssemblyVersion("1.0.0.2")]
 [assembly: AssemblyFileVersion("1.0.0.2")]
 [assembly: Guid("fca5c3d7-30b6-4224-a77f-5851314bd435")]
-

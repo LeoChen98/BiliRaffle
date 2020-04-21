@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Forms;
 
 namespace BiliRaffle
 {
-    class Program
+    internal class Program
     {
+        #region Private Methods
 
         [STAThread]
         private static void Main(string[] args)
@@ -17,7 +13,7 @@ namespace BiliRaffle
             System.Windows.Application app = new System.Windows.Application();
             if (args.Length > 0)
             {
-                for(int i = 0; i < args.Length; i++)
+                for (int i = 0; i < args.Length; i++)
                 {
                     switch (args[i])
                     {
@@ -33,12 +29,14 @@ namespace BiliRaffle
                                         case "q":
                                             Environment.Exit(1);
                                             break;
+
                                         default:
                                             break;
                                     }
                                 }
                             });
                             break;
+
                         case "-c":
                             Raffle.Cookies = args[++i];
                             break;
@@ -46,6 +44,7 @@ namespace BiliRaffle
                         case "-w":
                             ViewModel.Main.Whwnd = args[++i];
                             break;
+
                         default:
                             break;
                     }
@@ -53,5 +52,7 @@ namespace BiliRaffle
             }
             app.Run(new MainWindow());
         }
+
+        #endregion Private Methods
     }
 }

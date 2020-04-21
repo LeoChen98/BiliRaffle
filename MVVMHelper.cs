@@ -81,7 +81,7 @@ namespace BiliRaffle
     {
         #region Private Fields
 
-        private readonly Func<object,bool> _canExecute;
+        private readonly Func<object, bool> _canExecute;
 
         private readonly Action<T> _execute;
 
@@ -96,7 +96,7 @@ namespace BiliRaffle
         {
         }
 
-        public RelayCommand(Action<T> execute, Func<object,bool> canExecute)
+        public RelayCommand(Action<T> execute, Func<object, bool> canExecute)
 
         {
             _execute = execute ?? throw new ArgumentNullException("execute");
@@ -140,13 +140,14 @@ namespace BiliRaffle
 
         public void Execute(object parameter)
         {
-            if(typeof(T) == typeof(int) && parameter.GetType() == typeof(string))
+            if (typeof(T) == typeof(int) && parameter.GetType() == typeof(string))
             {
                 parameter = (string)parameter == "" ? "-1" : parameter;
                 object i = int.Parse((string)parameter);
                 _execute((T)i);
-            }else
-            _execute((T)parameter);
+            }
+            else
+                _execute((T)parameter);
         }
 
         #endregion Public Methods
