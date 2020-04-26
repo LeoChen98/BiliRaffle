@@ -27,10 +27,10 @@ namespace BiliRaffle
                 return new RelayCommand<Window>((sender) =>
                 {
                     sender.WindowState = WindowState.Minimized;
-                },(sender)=>
-                {
-                    return sender != null;
-                });
+                }, (sender) =>
+                 {
+                     return sender != null;
+                 });
             }
         }
 

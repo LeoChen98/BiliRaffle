@@ -1,6 +1,6 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -11,16 +11,21 @@ namespace BiliRaffle
         #region Private Fields
 
         private static ViewModel _viewmodel;
+        private bool _AsPlugin = false;
+        private RelayCommand<int> _ChangeNum;
         private bool _CheckFollow = false;
+        private bool _Filter = true;
+        private int _FilterCondition = 5;
+        private bool _IsCommentEnabled = false;
         private bool _IsOneChance = true;
+        private bool _IsRepliesInFloors = true;
+        private bool _IsReposeEnabled = true;
+        private bool _IsValid = false;
         private string _Msg;
         private RelayCommand _NoticeLogin;
         private int _Num = 1;
         private ICommand _Start;
-        private RelayCommand<int> _ChangeNum;
         private string _Url;
-        private bool _AsPlugin=false;
-        private bool _IsValid = false;
         private string _whwnd;
 
         #endregion Private Fields
@@ -29,6 +34,7 @@ namespace BiliRaffle
 
         public ViewModel()
         {
+            PushMsg($"当前版本：{Assembly.GetExecutingAssembly().GetName().Version}");
         }
 
         #endregion Public Constructors
@@ -40,7 +46,6 @@ namespace BiliRaffle
         #endregion Public Events
 
         #region Public Properties
-        
 
         /// <summary>
         /// 单例实例
@@ -62,19 +67,6 @@ namespace BiliRaffle
         }
 
         /// <summary>
-        /// 父窗口，仅插件模式可用
-        /// </summary>
-        public string Whwnd
-        {
-            get { return _whwnd; }
-            set
-            {
-                _whwnd = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Whwnd"));
-            }
-        }
-
-        /// <summary>
         /// 以插件模式运行
         /// </summary>
         public bool AsPlugin
@@ -87,6 +79,50 @@ namespace BiliRaffle
             {
                 _AsPlugin = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AsPlugin"));
+            }
+        }
+
+        private double _WndLeft;
+        private double _WndTop;
+
+        public double WndLeft
+        {
+            get { return _WndLeft; }
+            set
+            {
+                _WndLeft = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("WndLeft"));
+            }
+        }
+
+        public double WndTop
+        {
+            get { return _WndTop; }
+            set
+            {
+                _WndTop = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("WndTop"));
+            }
+        }
+
+        /// <summary>
+        /// 修改中奖人数命令
+        /// </summary>
+        public RelayCommand<int> ChangeNum
+        {
+            get
+            {
+                if (_ChangeNum == null)
+                {
+                    _ChangeNum = new RelayCommand<int>((e) =>
+                    {
+                        Num = (int)e;
+                    }, (e) =>
+                     {
+                         return e != null;
+                     });
+                }
+                return _ChangeNum;
             }
         }
 
@@ -103,7 +139,6 @@ namespace BiliRaffle
             }
         }
 
-        private bool _Filter = true;
         /// <summary>
         /// 过滤抽奖号
         /// </summary>
@@ -116,8 +151,6 @@ namespace BiliRaffle
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Filter"));
             }
         }
-
-        private int _FilterCondition = 5;
 
         /// <summary>
         /// 抽奖号阈值
@@ -137,21 +170,6 @@ namespace BiliRaffle
             }
         }
 
-        private bool _IsReposeEnabled = true;
-        private bool _IsCommentEnabled = false;
-
-        /// <summary>
-        /// 转发抽奖
-        /// </summary>
-        public bool IsReposeEnabled
-        {
-            get { return _IsReposeEnabled; }
-            set
-            {
-                _IsReposeEnabled = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsReposeEnabled"));
-            }
-        }
         /// <summary>
         /// 评论抽奖
         /// </summary>
@@ -165,7 +183,18 @@ namespace BiliRaffle
             }
         }
 
-        private bool _IsRepliesInFloors=true;
+        /// <summary>
+        /// 不统计重复
+        /// </summary>
+        public bool IsOneChance
+        {
+            get { return _IsOneChance; }
+            set
+            {
+                _IsOneChance = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOneChance"));
+            }
+        }
 
         /// <summary>
         /// 评论楼中楼
@@ -181,16 +210,25 @@ namespace BiliRaffle
         }
 
         /// <summary>
-        /// 不统计重复
+        /// 转发抽奖
         /// </summary>
-        public bool IsOneChance
+        public bool IsReposeEnabled
         {
-            get { return _IsOneChance; }
+            get { return _IsReposeEnabled; }
             set
             {
-                _IsOneChance = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOneChance"));
+                _IsReposeEnabled = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsReposeEnabled"));
             }
+        }
+
+        /// <summary>
+        /// 指示是否有输入错误
+        /// </summary>
+        public bool IsValid
+        {
+            get { return _IsValid; }
+            set { _IsValid = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsValid")); }
         }
 
         /// <summary>
@@ -232,7 +270,7 @@ namespace BiliRaffle
             get { return _Num; }
             set
             {
-                if(value > 0)
+                if (value > 0)
                 {
                     _Num = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Num"));
@@ -256,31 +294,10 @@ namespace BiliRaffle
                             System.Windows.Forms.MessageBox.Show("抽奖地址不能为空！");
                             return;
                         }
-                        Task.Factory.StartNew(()=> { Raffle.StartAsync(Url, Num, IsReposeEnabled, IsCommentEnabled, IsOneChance, CheckFollow, Filter, FilterCondition,IsRepliesInFloors); });
+                        Task.Factory.StartNew(() => { Raffle.StartAsync(Url, Num, IsReposeEnabled, IsCommentEnabled, IsOneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors); });
                     });
                 }
                 return _Start;
-            }
-        }
-
-        /// <summary>
-        /// 修改中奖人数命令
-        /// </summary>
-        public RelayCommand<int> ChangeNum
-        {
-            get
-            {
-                if (_ChangeNum == null)
-                {
-                    _ChangeNum = new RelayCommand<int>((e) =>
-                    {
-                        Num = (int)e;
-                    },(e)=>
-                    {
-                        return e != null;
-                    });
-                }
-                return _ChangeNum;
             }
         }
 
@@ -301,12 +318,16 @@ namespace BiliRaffle
         }
 
         /// <summary>
-        /// 指示是否有输入错误
+        /// 父窗口，仅插件模式可用
         /// </summary>
-        public bool IsValid
+        public string Whwnd
         {
-            get { return _IsValid; }
-            set { _IsValid = value;PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsValid")); }
+            get { return _whwnd; }
+            set
+            {
+                _whwnd = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Whwnd"));
+            }
         }
 
         #endregion Public Properties
