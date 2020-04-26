@@ -82,6 +82,29 @@ namespace BiliRaffle
             }
         }
 
+        private double _WndLeft;
+        private double _WndTop;
+
+        public double WndLeft
+        {
+            get { return _WndLeft; }
+            set
+            {
+                _WndLeft = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("WndLeft"));
+            }
+        }
+
+        public double WndTop
+        {
+            get { return _WndTop; }
+            set
+            {
+                _WndTop = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("WndTop"));
+            }
+        }
+
         /// <summary>
         /// 修改中奖人数命令
         /// </summary>

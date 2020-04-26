@@ -53,7 +53,7 @@ namespace BiliRaffle
         #region Public Methods
 
         /// <summary>
-        /// 开始抽奖（异步）
+        /// 开始抽奖
         /// </summary>
         /// <param name="url">Url</param>
         /// <param name="num">中奖人数</param>
@@ -335,7 +335,7 @@ namespace BiliRaffle
                 H_Reply_Data obj = new H_Reply_Data();
                 int i = 1, ucount = 0;
                 string rid = id.Replace("au", "");
-                ViewModel.Main.PushMsg($"开始收集音频{id}下的评论");
+                ViewModel.Main.PushMsg($"开始收集音频au{rid}下的评论");
                 do
                 {
                     string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=14&oid={rid}&sort=2");
@@ -344,7 +344,7 @@ namespace BiliRaffle
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
                         if (obj.code == 0)
                         {
-                            if (i == 1) ViewModel.Main.PushMsg($"音频{id}共有{obj.data.page.count}条评论。开始统计uid...");
+                            if (i == 1) ViewModel.Main.PushMsg($"音频au{rid}共有{obj.data.page.count}条评论。开始统计uid...");
 
                             if (obj.data.replies != null && obj.data.replies.Length != 0)
                             {
@@ -376,7 +376,7 @@ namespace BiliRaffle
                     i++;
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
-                ViewModel.Main.PushMsg($"音频{id}下共统计到{ucount}个（次）uid评论");
+                ViewModel.Main.PushMsg($"音频au{rid}下共统计到{ucount}个（次）uid评论");
             }
         }
 
@@ -433,7 +433,7 @@ namespace BiliRaffle
                 H_Reply_Data obj = new H_Reply_Data();
                 int i = 1, ucount = 0;
                 string rid = id.Replace("cv", "");
-                ViewModel.Main.PushMsg($"开始收集专栏{id}下的评论");
+                ViewModel.Main.PushMsg($"开始收集专栏cv{rid}下的评论");
                 do
                 {
                     string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=12&oid={rid}&sort=2");
@@ -442,7 +442,7 @@ namespace BiliRaffle
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
                         if (obj.code == 0)
                         {
-                            if (i == 1) ViewModel.Main.PushMsg($"专栏{id}共有{obj.data.page.count}条评论。开始统计uid...");
+                            if (i == 1) ViewModel.Main.PushMsg($"专栏cv{rid}共有{obj.data.page.count}条评论。开始统计uid...");
 
                             if (obj.data.replies != null && obj.data.replies.Length != 0)
                             {
@@ -474,7 +474,7 @@ namespace BiliRaffle
                     i++;
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
-                ViewModel.Main.PushMsg($"专栏{id}下共统计到{ucount}个（次）uid评论");
+                ViewModel.Main.PushMsg($"专栏cv{rid}下共统计到{ucount}个（次）uid评论");
             }
         }
 
@@ -556,11 +556,11 @@ namespace BiliRaffle
         /// <param name="num">中奖数量</param>
         /// <param name="CheckFollow">是否检查关注</param>
         /// <returns>中奖uid</returns>
-        private static Task<string[]> DoRaffleAsync(string[] uids, int num, bool CheckFollow = false)
+        private static Task<string[]> DoRaffleAsync(string[] uids, int num, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5)
         {
             return Task.Run(() =>
             {
-                return DoRaffle(uids, num, CheckFollow);
+                return DoRaffle(uids, num, CheckFollow, Filter, FilterCondition);
             });
         }
 
@@ -928,9 +928,31 @@ namespace BiliRaffle
         {
             foreach (var id in ids)
             {
+                ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
+                string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}");
+                if (string.IsNullOrEmpty(pre_str))return;
+                JObject o = JObject.Parse(pre_str);
+                if ((int)o["code"] != 0) return;
+                switch ((int)o["data"]["card"]["desc"]["type"])
+                {
+                    case 2: //画簿
+                        goto H_C;
+
+                    case 8: //视频
+                        goto V_C;
+
+                    case 64://专栏
+                        goto C_C;
+
+                    case 256://音频
+                        goto A_C;
+
+                    default://一般动态
+                        break;
+                }
+
                 H_Reply_Data obj = new H_Reply_Data();
                 int i = 1, ucount = 0;
-                ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
                 do
                 {
                     string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=17&oid={id}&sort=2");
@@ -972,6 +994,27 @@ namespace BiliRaffle
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
                 ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个（次）uid评论");
+                return;
+
+            V_C://视频
+                ViewModel.Main.PushMsg($"动态{id}是视频，执行视频评论收集");
+                V_Raffle(new string[1] { "av" + o["data"]["card"]["desc"]["rid_str"].ToString() }, OneChance, IsRepliesInFloors);
+                return;
+
+            H_C://画簿
+                ViewModel.Main.PushMsg($"动态{id}是画簿，执行画簿评论收集");
+                H_Raffle(new string[1] { o["data"]["card"]["desc"]["rid_str"].ToString() }, OneChance, IsRepliesInFloors);
+                return;
+
+            C_C://专栏
+                ViewModel.Main.PushMsg($"动态{id}是专栏，执行专栏评论收集");
+                C_Raffle(new string[1] { o["data"]["card"]["desc"]["rid_str"].ToString() }, OneChance, IsRepliesInFloors);
+                return;
+
+            A_C://音频
+                ViewModel.Main.PushMsg($"动态{id}是音频，执行音频评论收集");
+                A_Raffle(new string[1] { o["data"]["card"]["desc"]["rid_str"].ToString() }, OneChance, IsRepliesInFloors);
+                return;
             }
         }
 
@@ -1053,7 +1096,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集视频{id}下的评论");
 
                 string rid;
-                rid = reg.IsMatch(id) ? BV2AV(id) : id.Replace("av", "");
+                rid = reg.IsMatch(id) ? BV2AV(id) : id.ToLower().Replace("av", "");
 
                 int pn = 1, count = 20, ucount = 0;
                 Regex reg_count = new Regex("\"count\":(\\d+)");

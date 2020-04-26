@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -29,13 +31,19 @@ namespace BiliRaffle
 
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         public static extern IntPtr GetWindowLongPtr(IntPtr hwnd, int nIndex);
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
+        public static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
         public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+        public static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int MoveWindow(IntPtr hWnd, int x, int y, int nWidth, int nHeight, bool BRePaint);
         #endregion Public Methods
 
         #region Private Methods
@@ -115,12 +123,50 @@ namespace BiliRaffle
             if (ViewModel.Main.AsPlugin)
             {
                 IntPtr hWnd = new WindowInteropHelper(this).Handle;
-                SetParent(hWnd, new IntPtr(int.Parse(ViewModel.Main.Whwnd, System.Globalization.NumberStyles.HexNumber)));
                 Height = 411;
                 ShowInTaskbar = false;
-                IntPtr WndLong = GetWindowLongPtr(hWnd, -20);
-                SetWindowLongPtr(hWnd, -20, new IntPtr(WndLong.ToInt64() | 0x00000080));
+                if (Environment.Is64BitProcess)
+                {
+                    IntPtr WndLong = GetWindowLongPtr(hWnd, -20);
+                    SetWindowLongPtr(hWnd, -20, new IntPtr(WndLong.ToInt64() | 0x00000080));
+                }
+                else
+                {
+                    IntPtr WndLong = GetWindowLong(hWnd, -20);
+                    SetWindowLong(hWnd, -20, new IntPtr(WndLong.ToInt64() | 0x00000080));
+                }
+                SetParent(hWnd, new IntPtr(int.Parse(ViewModel.Main.Whwnd, System.Globalization.NumberStyles.HexNumber)));
+                MoveWindow(hWnd, (int)ViewModel.Main.WndLeft, (int)ViewModel.Main.WndTop, (int)Width, (int)Height, true);
             }
+            else
+            {
+                string new_ver = CheckUpdate();
+                if (!string.IsNullOrEmpty(new_ver) && new_ver != Assembly.GetExecutingAssembly().GetName().Version.ToString()) ViewModel.Main.PushMsg($"检查到新版本{new_ver}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver}】下载。");
+            }
+        }
+
+        private string CheckUpdate()
+        {
+            string result = "";
+            HttpWebRequest req = null;
+            HttpWebResponse rep = null;
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
+                req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
+                req.AllowAutoRedirect = false;
+                rep = (HttpWebResponse)req.GetResponse();
+                result = new Regex("\\d+?.\\d+?.\\d+?.\\d+?").Match(rep.Headers["Location"]).Value;
+            }
+            finally
+            {
+                if (rep != null) rep.Close();
+                if (req != null) req.Abort();
+            }
+
+            return result;
         }
 
         #endregion Private Methods
