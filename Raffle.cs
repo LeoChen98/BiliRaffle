@@ -575,25 +575,29 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            do
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}");
-
-                if (!string.IsNullOrEmpty(str))
+                do
                 {
-                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                    if (obj.code == 0)
-                    {
-                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}");
 
-                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                        if (obj.code == 0)
                         {
-                            rs.Add(reply.mid);
+                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+
+                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                            {
+                                rs.Add(reply.mid);
+                            }
                         }
                     }
-                }
-                pn++;
-            } while (pn * 10 < count);
+                    pn++;
+                } while (pn * 10 < count);
+            }
+            catch { }
 
             return rs.ToArray();
         }
@@ -609,25 +613,29 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            do
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}");
-
-                if (!string.IsNullOrEmpty(str))
+                do
                 {
-                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                    if (obj.code == 0)
-                    {
-                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}");
 
-                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                        if (obj.code == 0)
                         {
-                            rs.Add(reply.mid);
+                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+
+                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                            {
+                                rs.Add(reply.mid);
+                            }
                         }
                     }
-                }
-                pn++;
-            } while (pn * 10 < count);
+                    pn++;
+                } while (pn * 10 < count);
+            }
+            catch { }
 
             return rs.ToArray();
         }
@@ -643,25 +651,29 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            do
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}");
-
-                if (!string.IsNullOrEmpty(str))
+                do
                 {
-                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                    if (obj.code == 0)
-                    {
-                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}");
 
-                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                        if (obj.code == 0)
                         {
-                            rs.Add(reply.mid);
+                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+
+                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                            {
+                                rs.Add(reply.mid);
+                            }
                         }
                     }
-                }
-                pn++;
-            } while (pn * 10 < count);
+                    pn++;
+                } while (pn * 10 < count);
+            }
+            catch { }
 
             return rs.ToArray();
         }
@@ -677,25 +689,29 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            do
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}");
-
-                if (!string.IsNullOrEmpty(str))
+                do
                 {
-                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                    if (obj.code == 0)
-                    {
-                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}");
 
-                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                        if (obj.code == 0)
                         {
-                            rs.Add(reply.mid);
+                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+
+                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                            {
+                                rs.Add(reply.mid);
+                            }
                         }
                     }
-                }
-                pn++;
-            } while (pn * 10 < count);
+                    pn++;
+                } while (pn * 10 < count);
+            }
+            catch { }
 
             return rs.ToArray();
         }
@@ -711,25 +727,29 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            do
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}");
-
-                if (!string.IsNullOrEmpty(str))
+                do
                 {
-                    V_Comment_Templete obj = JsonConvert.DeserializeObject<V_Comment_Templete>(str);
-                    if (obj.code == 0)
-                    {
-                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}");
 
-                        foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        V_Comment_Templete obj = JsonConvert.DeserializeObject<V_Comment_Templete>(str);
+                        if (obj.code == 0)
                         {
-                            rs.Add(reply.member.mid);
+                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+
+                            foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
+                            {
+                                rs.Add(reply.member.mid);
+                            }
                         }
                     }
-                }
-                pn++;
-            } while (pn * 10 < count);
+                    pn++;
+                } while (pn * 10 < count);
+            }
+            catch { }
 
             return rs.ToArray();
         }
