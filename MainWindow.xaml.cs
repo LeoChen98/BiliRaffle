@@ -50,7 +50,7 @@ namespace BiliRaffle
 
         private void CB_Condition_Comment_Click(object sender, RoutedEventArgs e)
         {
-            Regex regx = new Regex("(([|http://|https://]+[|h.bilibili.com/|(www\\.|)?bilibili.com/video/(av|AV)|(www\\.|)?bilibili.com/audio/au|(www\\.|)?bilibili.com/read/cv]+\\d+)|(www\\.|)?bilibili.com/video/(BV|bv)[0-9a-zA-Z]{10})\\?*.*");
+            Regex regx = new Regex("(^|http[s]://)((h.bilibili.com/\\d+)|((|www.)bilibili.com/(read/(cv|CV)\\d+|video/(av|AV)\\d+|video/BV[0-9A-Za-z]{10}|audio/(au|AU)\\d+)))");
             if (regx.IsMatch(TB_Url.Text) && !ViewModel.Main.IsCommentEnabled)
             {
                 System.Windows.Forms.MessageBox.Show("无法关闭，存在只支持评论抽奖的项目！");
@@ -94,7 +94,7 @@ namespace BiliRaffle
                 return;
             }
 
-            Regex reg = new Regex("(([|http://|https://]+[t.bilibili.com/|h.bilibili.com/|(www\\.|)?bilibili.com/video/(av|AV)|(www\\.|)?bilibili.com/audio/au|(www\\.|)?bilibili.com/read/cv]+\\d+)|(www\\.|)?bilibili.com/video/(BV|bv)[0-9a-zA-Z]{10})\\?*.*");
+            Regex reg = new Regex("(^|http[s]://)(((t.|h.)bilibili.com/\\d+)|((|www.)bilibili.com/(read/(cv|CV)\\d+|video/(av|AV)\\d+|video/BV[0-9A-Za-z]{10}|audio/(au|AU)\\d+)))");
             if (reg.IsMatch(textBox.Text))
             {
                 textBox.BorderBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x81, 0x81, 0x81));
@@ -102,13 +102,13 @@ namespace BiliRaffle
             else
                 textBox.BorderBrush = new SolidColorBrush(Colors.Red);
 
-            Regex regx = new Regex("(([|http://|https://]+[|h.bilibili.com/|(www\\.|)?bilibili.com/video/(av|AV)|(www\\.|)?bilibili.com/audio/au|(www\\.|)?bilibili.com/read/cv]+\\d+)|(www\\.|)?bilibili.com/video/(BV|bv)[0-9a-zA-Z]{10})\\?*.*");
+            Regex regx = new Regex("(^|http[s]://)((h.bilibili.com/\\d+)|((|www.)bilibili.com/(read/(cv|CV)\\d+|video/(av|AV)\\d+|video/BV[0-9A-Za-z]{10}|audio/(au|AU)\\d+)))");
             if (regx.IsMatch(textBox.Text))
             {
                 ViewModel.Main.IsCommentEnabled = true;
             }
 
-            Regex regt = new Regex("([|http://|https://]t.bilibili.com/\\d+)\\?*.*");
+            Regex regt = new Regex("(^|http[s]://)t.bilibili.com/\\d+");
             if (regt.IsMatch(textBox.Text))
                 CB_Condition_Repose.IsEnabled = true;
             else
@@ -140,14 +140,14 @@ namespace BiliRaffle
             }
             else
             {
-                string new_ver = CheckUpdate();
-                if (!string.IsNullOrEmpty(new_ver) && new_ver != Assembly.GetExecutingAssembly().GetName().Version.ToString()) ViewModel.Main.PushMsg($"检查到新版本{new_ver}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver}】下载。");
+                Match new_ver = CheckUpdate();
+                if (new_ver != null && int.Parse(new_ver.Groups[1].Value) > Assembly.GetExecutingAssembly().GetName().Version.Revision) ViewModel.Main.PushMsg($"检查到新版本{new_ver.Value}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver.Value}】下载。");
             }
         }
 
-        private string CheckUpdate()
+        private Match CheckUpdate()
         {
-            string result = "";
+            Match result;
             HttpWebRequest req = null;
             HttpWebResponse rep = null;
             try
@@ -158,7 +158,7 @@ namespace BiliRaffle
                 req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
                 req.AllowAutoRedirect = false;
                 rep = (HttpWebResponse)req.GetResponse();
-                result = new Regex("\\d+?.\\d+?.\\d+?.\\d+?").Match(rep.Headers["Location"]).Value;
+                result = new Regex("\\d+?.\\d+?.\\d+?.(\\d+?)_\\S+").Match(rep.Headers["Location"]);
             }
             finally
             {
