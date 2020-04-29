@@ -83,7 +83,7 @@ namespace BiliRaffle
 
                 foreach (var urlRaw in urls)
                 {
-                    var url = urlRaw.Split('?')[0];
+                    var url = urlRaw.Split(new char[]{ '?','#'})[0];
                     string[] tmp = url.Split('/');
                     if (tmp.Length < 4) continue;
 
@@ -217,7 +217,7 @@ namespace BiliRaffle
 
                 foreach (var urlRaw in urls)
                 {
-                    var url = urlRaw.Split('?')[0];
+                    var url = urlRaw.Split(new char[] { '?', '#' })[0];
                     string[] tmp = url.Split('/');
                     if (tmp.Length < 4) continue;
 
