@@ -137,7 +137,11 @@ namespace BiliRaffle
 
             Regex regt = new Regex("(^|http[s]://)t.bilibili.com/\\d+");
             if (regt.IsMatch(textBox.Text))
+            {
                 CB_Condition_Repose.IsEnabled = true;
+                if (!ViewModel.Main.IsCommentEnabled && !ViewModel.Main.IsReposeEnabled)
+                    CB_Condition_Repose.IsChecked = true;
+            }
             else
             {
                 ViewModel.Main.IsReposeEnabled = false;
