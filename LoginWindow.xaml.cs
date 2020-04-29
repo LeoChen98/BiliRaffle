@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using DmCommons;
+using Newtonsoft.Json.Linq;
 using QRCoder;
 using System;
 using System.Drawing;

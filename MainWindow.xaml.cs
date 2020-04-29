@@ -29,21 +29,24 @@ namespace BiliRaffle
 
         #region Public Methods
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
-        public static extern IntPtr GetWindowLongPtr(IntPtr hwnd, int nIndex);
         [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
         public static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        public static extern IntPtr GetWindowLongPtr(IntPtr hwnd, int nIndex);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int MoveWindow(IntPtr hWnd, int x, int y, int nWidth, int nHeight, bool BRePaint);
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
-        public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
         [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
         public static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int MoveWindow(IntPtr hWnd, int x, int y, int nWidth, int nHeight, bool BRePaint);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
         #endregion Public Methods
 
         #region Private Methods
@@ -56,6 +59,30 @@ namespace BiliRaffle
                 System.Windows.Forms.MessageBox.Show("无法关闭，存在只支持评论抽奖的项目！");
                 ViewModel.Main.IsCommentEnabled = true;
             }
+        }
+
+        private Match CheckUpdate()
+        {
+            Match result;
+            HttpWebRequest req = null;
+            HttpWebResponse rep = null;
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
+                req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
+                req.AllowAutoRedirect = false;
+                rep = (HttpWebResponse)req.GetResponse();
+                result = new Regex("\\d+?.\\d+?.\\d+?.(\\d+?)(|_\\S+)").Match(rep.Headers["Location"]);
+            }
+            finally
+            {
+                if (rep != null) rep.Close();
+                if (req != null) req.Abort();
+            }
+
+            return result;
         }
 
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
@@ -141,32 +168,8 @@ namespace BiliRaffle
             else
             {
                 Match new_ver = CheckUpdate();
-                if (new_ver != null && int.Parse(new_ver.Groups[1].Value) > Assembly.GetExecutingAssembly().GetName().Version.Revision) ViewModel.Main.PushMsg($"检查到新版本{new_ver.Value}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver.Value}】下载。");
+                if (new_ver != null && new_ver.Success && int.Parse(new_ver.Groups[1].Value) > Assembly.GetExecutingAssembly().GetName().Version.Revision) ViewModel.Main.PushMsg($"检查到新版本{new_ver.Value}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver.Value}】下载。");
             }
-        }
-
-        private Match CheckUpdate()
-        {
-            Match result;
-            HttpWebRequest req = null;
-            HttpWebResponse rep = null;
-            try
-            {
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-
-                req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
-                req.AllowAutoRedirect = false;
-                rep = (HttpWebResponse)req.GetResponse();
-                result = new Regex("\\d+?.\\d+?.\\d+?.(\\d+?)_\\S+").Match(rep.Headers["Location"]);
-            }
-            finally
-            {
-                if (rep != null) rep.Close();
-                if (req != null) req.Abort();
-            }
-
-            return result;
         }
 
         #endregion Private Methods

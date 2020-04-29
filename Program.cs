@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DmCommons;
+using System;
 using System.Diagnostics;
 using System.Management;
 using System.Reflection;
@@ -6,83 +7,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace BiliRaffle
 {
     internal class Program
     {
         #region Private Methods
-
-        [STAThread]
-        private static void Main(string[] args)
-        {
-            System.Windows.Application app = new System.Windows.Application();
-            if (args.Length > 0)
-            {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    switch (args[i])
-                    {
-                        case "-p":
-                            ViewModel.Main.AsPlugin = true;
-                            Process p = Process.GetProcessById(int.Parse(args[++i]));
-                            Task.Factory.StartNew(() =>
-                            {
-                                while (true)
-                                {
-                                    switch (Console.ReadLine())
-                                    {
-                                        case "Q":
-                                        case "q":
-                                            Environment.Exit(1);
-                                            break;
-
-                                        default:
-                                            break;
-                                    }
-
-                                    if(p.HasExited) Environment.Exit(2);
-
-                                    Thread.Sleep(1000);
-                                }
-                            });
-                            break;
-
-                        case "-c":
-                            Raffle.Cookies = args[++i];
-                            break;
-
-                        case "-w":
-                            ViewModel.Main.Whwnd = args[++i];
-                            break;
-
-                        case "-l":
-                            ViewModel.Main.WndLeft = double.Parse(args[++i]);
-                            break;
-
-                        case "-t":
-                            ViewModel.Main.WndTop = double.Parse(args[++i]);
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            if (!ViewModel.Main.AsPlugin) User_Statistics();
-            app.Run(new MainWindow());
-        }
-
-        private static void User_Statistics()
-        {
-            string cpu = GetCPUInfo();
-            string drive = GetMainDriveId();
-            string info = GetMD5_16(cpu + drive);
-            string json = $"{{\"pid\":119,\"version\":{Assembly.GetExecutingAssembly().GetName().Version.Revision},\"token\":\"{info}\"}}";
-            Http.PostBody("https://cloud.api.zhangbudademao.com/public/User_Statistics", json, null, "application/json; charset=UTF-8");
-        }
 
         private static string GetCPUInfo()
         {
@@ -139,6 +69,76 @@ namespace BiliRaffle
                 sb.AppendFormat("{0:X2}", data[i]);
             }
             return sb.ToString();
+        }
+
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            System.Windows.Application app = new System.Windows.Application();
+            if (args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    switch (args[i])
+                    {
+                        case "-p":
+                            ViewModel.Main.AsPlugin = true;
+                            Process p = Process.GetProcessById(int.Parse(args[++i]));
+                            Task.Factory.StartNew(() =>
+                            {
+                                while (true)
+                                {
+                                    switch (Console.ReadLine())
+                                    {
+                                        case "Q":
+                                        case "q":
+                                            Environment.Exit(1);
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+
+                                    if (p.HasExited) Environment.Exit(2);
+
+                                    Thread.Sleep(1000);
+                                }
+                            });
+                            break;
+
+                        case "-c":
+                            Raffle.Cookies = args[++i];
+                            break;
+
+                        case "-w":
+                            ViewModel.Main.Whwnd = args[++i];
+                            break;
+
+                        case "-l":
+                            ViewModel.Main.WndLeft = double.Parse(args[++i]);
+                            break;
+
+                        case "-t":
+                            ViewModel.Main.WndTop = double.Parse(args[++i]);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            if (!ViewModel.Main.AsPlugin) User_Statistics();
+            app.Run(new MainWindow());
+        }
+
+        private static void User_Statistics()
+        {
+            string cpu = GetCPUInfo();
+            string drive = GetMainDriveId();
+            string info = GetMD5_16(cpu + drive);
+            string json = $"{{\"pid\":119,\"version\":{Assembly.GetExecutingAssembly().GetName().Version.Revision},\"token\":\"{info}\"}}";
+            Http.PostBody("https://cloud.api.zhangbudademao.com/public/User_Statistics", json, null, "application/json; charset=UTF-8");
         }
 
         #endregion Private Methods
