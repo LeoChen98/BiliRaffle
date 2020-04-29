@@ -40,6 +40,12 @@
     <StartupObject>BiliRaffle.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DmCommons.ErrorReport">
+      <HintPath>..\DmCommons\bin\Release\net45\DmCommons.ErrorReport.dll</HintPath>
+    </Reference>
+    <Reference Include="DmCommons.Http">
+      <HintPath>..\DmCommons\bin\Release\net45\DmCommons.Http.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -71,7 +77,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter.cs" />
-    <Compile Include="http.cs" />
     <Compile Include="LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>

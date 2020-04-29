@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using DmCommons;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static DmCommons.ErrorReport;
 
 #pragma warning disable CS0649
 
@@ -15,6 +17,7 @@ namespace BiliRaffle
         #region Private Fields
 
         private static readonly object LOCK_ADDUID = new object();
+        private static readonly string REPO = "LeoChen98/BiliRaffle";
         private static string _Cookies;
         private static List<string> uids;
 
@@ -65,118 +68,125 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static void Start(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
-            ViewModel.Main.PushMsg("---------抽奖开始---------");
-            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            uids = new List<string>();
-
-            int flag = 0;
-            List<string> T_ids = new List<string>();
-            List<string> H_ids = new List<string>();
-            List<string> V_ids = new List<string>();
-            List<string> C_ids = new List<string>();
-            List<string> A_ids = new List<string>();
-
-            foreach (var urlRaw in urls)
+            try
             {
-                var url = urlRaw.Split('?')[0];
-                string[] tmp = url.Split('/');
-                if (tmp.Length < 4) continue;
+                ViewModel.Main.PushMsg("---------抽奖开始---------");
+                var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                uids = new List<string>();
 
-                switch (tmp[2])
+                int flag = 0;
+                List<string> T_ids = new List<string>();
+                List<string> H_ids = new List<string>();
+                List<string> V_ids = new List<string>();
+                List<string> C_ids = new List<string>();
+                List<string> A_ids = new List<string>();
+
+                foreach (var urlRaw in urls)
                 {
-                    case "t.bilibili.com":
-                        if (T_ids.Count == 0) flag += 1;
-                        T_ids.Add(tmp[3]);
+                    var url = urlRaw.Split('?')[0];
+                    string[] tmp = url.Split('/');
+                    if (tmp.Length < 4) continue;
+
+                    switch (tmp[2])
+                    {
+                        case "t.bilibili.com":
+                            if (T_ids.Count == 0) flag += 1;
+                            T_ids.Add(tmp[3]);
+                            break;
+
+                        case "h.bilibili.com":
+                            if (H_ids.Count == 0) flag += 2;
+                            H_ids.Add(tmp[3]);
+                            break;
+
+                        case "www.bilibili.com":
+                            switch (tmp[3])
+                            {
+                                case "video":
+                                    if (V_ids.Count == 0) flag += 4;
+                                    V_ids.Add(tmp[4]);
+                                    break;
+
+                                case "read":
+                                    if (C_ids.Count == 0) flag += 8;
+                                    C_ids.Add(tmp[4]);
+                                    break;
+
+                                case "audio":
+                                    if (A_ids.Count == 0) flag += 13;
+                                    A_ids.Add(tmp[4]);
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                ViewModel.Main.PushMsg("---------抽奖设置---------");
+                switch (flag)
+                {
+                    case 1:
+                        if (IsReposeEnabled && IsCommentEnabled)
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
+                        else if (IsReposeEnabled)
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        else
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case "h.bilibili.com":
-                        if (H_ids.Count == 0) flag += 2;
-                        H_ids.Add(tmp[3]);
+                    case 2:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", H_ids)}\r\n抽奖类型：画簿评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case "www.bilibili.com":
-                        switch (tmp[3])
-                        {
-                            case "video":
-                                if (V_ids.Count == 0) flag += 4;
-                                V_ids.Add(tmp[4]);
-                                break;
+                    case 4:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", V_ids)}\r\n抽奖类型：视频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        break;
 
-                            case "read":
-                                if (C_ids.Count == 0) flag += 8;
-                                C_ids.Add(tmp[4]);
-                                break;
+                    case 8:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        break;
 
-                            case "audio":
-                                if (A_ids.Count == 0) flag += 13;
-                                A_ids.Add(tmp[4]);
-                                break;
-
-                            default:
-                                break;
-                        }
+                    case 13:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
                     default:
+                        string str = "";
+                        if (T_ids.Count > 0) str += $"动态：{string.Join(",", T_ids)}\r\n";
+                        if (H_ids.Count > 0) str += $"画簿：{string.Join(",", H_ids)}\r\n";
+                        if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
+                        if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
+                        if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
+                        ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
                 }
-            }
 
-            ViewModel.Main.PushMsg("---------抽奖设置---------");
-            switch (flag)
+                ViewModel.Main.PushMsg("---------抽奖信息---------");
+
+                T_Raffle_r(T_ids.ToArray(), OneChance);
+                T_Raffle_c(T_ids.ToArray(), OneChance, IsRepliesInFloors);
+                H_Raffle(H_ids.ToArray(), OneChance, IsRepliesInFloors);
+                V_Raffle(V_ids.ToArray(), OneChance, IsRepliesInFloors);
+                C_Raffle(C_ids.ToArray(), OneChance, IsRepliesInFloors);
+                A_Raffle(A_ids.ToArray(), OneChance, IsRepliesInFloors);
+
+                string[] rs = DoRaffle(uids.ToArray(), num, CheckFollow, Filter, FilterCondition);
+                ViewModel.Main.PushMsg("---------中奖名单---------");
+                foreach (string i in rs)
+                {
+                    ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
+                }
+                ViewModel.Main.PushMsg("---------抽奖结束---------");
+            }
+            catch (Exception ex)
             {
-                case 1:
-                    if (IsReposeEnabled && IsCommentEnabled)
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
-                    else if (IsReposeEnabled)
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    else
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 2:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", H_ids)}\r\n抽奖类型：画簿评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 4:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", V_ids)}\r\n抽奖类型：视频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 8:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 13:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                default:
-                    string str = "";
-                    if (T_ids.Count > 0) str += $"动态：{string.Join(",", T_ids)}\r\n";
-                    if (H_ids.Count > 0) str += $"画簿：{string.Join(",", H_ids)}\r\n";
-                    if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
-                    if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
-                    if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
-                    ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
+                Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
             }
-
-            ViewModel.Main.PushMsg("---------抽奖信息---------");
-
-            T_Raffle_r(T_ids.ToArray(), OneChance);
-            T_Raffle_c(T_ids.ToArray(), OneChance, IsRepliesInFloors);
-            H_Raffle(H_ids.ToArray(), OneChance, IsRepliesInFloors);
-            V_Raffle(V_ids.ToArray(), OneChance, IsRepliesInFloors);
-            C_Raffle(C_ids.ToArray(), OneChance, IsRepliesInFloors);
-            A_Raffle(A_ids.ToArray(), OneChance, IsRepliesInFloors);
-
-            string[] rs = DoRaffle(uids.ToArray(), num, CheckFollow, IsRepliesInFloors);
-            ViewModel.Main.PushMsg("---------中奖名单---------");
-            foreach (string i in rs)
-            {
-                ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
-            }
-            ViewModel.Main.PushMsg("---------抽奖结束---------");
         }
 
         /// <summary>
@@ -192,131 +202,138 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static async void StartAsync(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
-            ViewModel.Main.PushMsg("---------抽奖开始---------");
-            var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            uids = new List<string>();
-
-            int flag = 0;
-            List<string> T_ids = new List<string>();
-            List<string> H_ids = new List<string>();
-            List<string> V_ids = new List<string>();
-            List<string> C_ids = new List<string>();
-            List<string> A_ids = new List<string>();
-
-            foreach (var urlRaw in urls)
+            try
             {
-                var url = urlRaw.Split('?')[0];
-                string[] tmp = url.Split('/');
-                if (tmp.Length < 4) continue;
+                ViewModel.Main.PushMsg("---------抽奖开始---------");
+                var urls = urlText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                uids = new List<string>();
 
-                switch (tmp[2])
+                int flag = 0;
+                List<string> T_ids = new List<string>();
+                List<string> H_ids = new List<string>();
+                List<string> V_ids = new List<string>();
+                List<string> C_ids = new List<string>();
+                List<string> A_ids = new List<string>();
+
+                foreach (var urlRaw in urls)
                 {
-                    case "t.bilibili.com":
-                        if (T_ids.Count == 0) flag += 1;
-                        T_ids.Add(tmp[3]);
+                    var url = urlRaw.Split('?')[0];
+                    string[] tmp = url.Split('/');
+                    if (tmp.Length < 4) continue;
+
+                    switch (tmp[2])
+                    {
+                        case "t.bilibili.com":
+                            if (T_ids.Count == 0) flag += 1;
+                            T_ids.Add(tmp[3]);
+                            break;
+
+                        case "h.bilibili.com":
+                            if (H_ids.Count == 0) flag += 2;
+                            H_ids.Add(tmp[3]);
+                            break;
+
+                        case "www.bilibili.com":
+                            switch (tmp[3])
+                            {
+                                case "video":
+                                    if (V_ids.Count == 0) flag += 4;
+                                    V_ids.Add(tmp[4]);
+                                    break;
+
+                                case "read":
+                                    if (C_ids.Count == 0) flag += 8;
+                                    C_ids.Add(tmp[4]);
+                                    break;
+
+                                case "audio":
+                                    if (A_ids.Count == 0) flag += 13;
+                                    A_ids.Add(tmp[4]);
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                ViewModel.Main.PushMsg("---------抽奖设置---------");
+                switch (flag)
+                {
+                    case 1:
+                        if (IsReposeEnabled && IsCommentEnabled)
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
+                        else if (IsReposeEnabled)
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        else
+                            ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case "h.bilibili.com":
-                        if (H_ids.Count == 0) flag += 2;
-                        H_ids.Add(tmp[3]);
+                    case 2:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", H_ids)}\r\n抽奖类型：画簿评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case "www.bilibili.com":
-                        switch (tmp[3])
-                        {
-                            case "video":
-                                if (V_ids.Count == 0) flag += 4;
-                                V_ids.Add(tmp[4]);
-                                break;
+                    case 4:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", V_ids)}\r\n抽奖类型：视频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        break;
 
-                            case "read":
-                                if (C_ids.Count == 0) flag += 8;
-                                C_ids.Add(tmp[4]);
-                                break;
+                    case 8:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
+                        break;
 
-                            case "audio":
-                                if (A_ids.Count == 0) flag += 13;
-                                A_ids.Add(tmp[4]);
-                                break;
-
-                            default:
-                                break;
-                        }
+                    case 13:
+                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
                     default:
+                        string str = "";
+                        if (T_ids.Count > 0) str += $"动态：{string.Join(",", T_ids)}\r\n";
+                        if (H_ids.Count > 0) str += $"画簿：{string.Join(",", H_ids)}\r\n";
+                        if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
+                        if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
+                        if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
+                        ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
                 }
-            }
 
-            ViewModel.Main.PushMsg("---------抽奖设置---------");
-            switch (flag)
+                ViewModel.Main.PushMsg("---------抽奖信息---------");
+
+                List<Task> tasks = new List<Task>();
+                if (IsReposeEnabled && T_ids.Count > 0)
+                    tasks.Add(T_Raffle_rAsync(T_ids.ToArray(), OneChance));
+
+                if (IsCommentEnabled)
+                {
+                    if (T_ids.Count > 0)
+                        tasks.Add(T_Raffle_cAsync(T_ids.ToArray(), OneChance, IsRepliesInFloors));
+                    if (H_ids.Count > 0)
+                        tasks.Add(H_RaffleAsync(H_ids.ToArray(), OneChance, IsRepliesInFloors));
+                    if (V_ids.Count > 0)
+                        tasks.Add(V_RaffleAsync(V_ids.ToArray(), OneChance, IsRepliesInFloors));
+                    if (C_ids.Count > 0)
+                        tasks.Add(C_RaffleAsync(C_ids.ToArray(), OneChance, IsRepliesInFloors));
+                    if (A_ids.Count > 0)
+                        tasks.Add(A_RaffleAsync(A_ids.ToArray(), OneChance, IsRepliesInFloors));
+                }
+
+                Task.WaitAll(tasks.ToArray());
+
+                string[] rs = await DoRaffleAsync(uids.ToArray(), num, CheckFollow, Filter, FilterCondition);
+                ViewModel.Main.PushMsg("---------中奖名单---------");
+                foreach (string i in rs)
+                {
+                    ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
+                }
+                ViewModel.Main.PushMsg("---------抽奖结束---------");
+            }
+            catch (Exception ex)
             {
-                case 1:
-                    if (IsReposeEnabled && IsCommentEnabled)
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
-                    else if (IsReposeEnabled)
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    else
-                        ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 2:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", H_ids)}\r\n抽奖类型：画簿评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 4:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", V_ids)}\r\n抽奖类型：视频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 8:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                case 13:
-                    ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
-
-                default:
-                    string str = "";
-                    if (T_ids.Count > 0) str += $"动态：{string.Join(",", T_ids)}\r\n";
-                    if (H_ids.Count > 0) str += $"画簿：{string.Join(",", H_ids)}\r\n";
-                    if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
-                    if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
-                    if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
-                    ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
-                    break;
+                Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
             }
-
-            ViewModel.Main.PushMsg("---------抽奖信息---------");
-
-            List<Task> tasks = new List<Task>();
-            if (IsReposeEnabled && T_ids.Count > 0)
-                tasks.Add(T_Raffle_rAsync(T_ids.ToArray(), OneChance));
-
-            if (IsCommentEnabled)
-            {
-                if (T_ids.Count > 0)
-                    tasks.Add(T_Raffle_cAsync(T_ids.ToArray(), OneChance, IsRepliesInFloors));
-                if (H_ids.Count > 0)
-                    tasks.Add(H_RaffleAsync(H_ids.ToArray(), OneChance, IsRepliesInFloors));
-                if (V_ids.Count > 0)
-                    tasks.Add(V_RaffleAsync(V_ids.ToArray(), OneChance, IsRepliesInFloors));
-                if (C_ids.Count > 0)
-                    tasks.Add(C_RaffleAsync(C_ids.ToArray(), OneChance, IsRepliesInFloors));
-                if (A_ids.Count > 0)
-                    tasks.Add(A_RaffleAsync(A_ids.ToArray(), OneChance, IsRepliesInFloors));
-            }
-
-            Task.WaitAll(tasks.ToArray());
-
-            string[] rs = await DoRaffleAsync(uids.ToArray(), num, CheckFollow);
-            ViewModel.Main.PushMsg("---------中奖名单---------");
-            foreach (string i in rs)
-            {
-                ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
-            }
-            ViewModel.Main.PushMsg("---------抽奖结束---------");
         }
 
         #endregion Public Methods
@@ -575,29 +592,25 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            try
+            do
             {
-                do
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}");
+
+                if (!string.IsNullOrEmpty(str))
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}");
-
-                    if (!string.IsNullOrEmpty(str))
+                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                    if (obj.code == 0 && obj.data.replies != null)
                     {
-                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
 
-                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                            {
-                                rs.Add(reply.mid);
-                            }
+                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                        {
+                            rs.Add(reply.mid);
                         }
                     }
-                    pn++;
-                } while (pn * 10 < count);
-            }
-            catch { }
+                }
+                pn++;
+            } while (pn * 10 < count);
 
             return rs.ToArray();
         }
@@ -613,30 +626,25 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            try
+            do
             {
-                do
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}");
+
+                if (!string.IsNullOrEmpty(str))
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}");
-
-                    if (!string.IsNullOrEmpty(str))
+                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                    if (obj.code == 0 && obj.data.replies != null)
                     {
-                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
 
-                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                            {
-                                rs.Add(reply.mid);
-                            }
+                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                        {
+                            rs.Add(reply.mid);
                         }
                     }
-                    pn++;
-                } while (pn * 10 < count);
-            }
-            catch { }
-
+                }
+                pn++;
+            } while (pn * 10 < count);
             return rs.ToArray();
         }
 
@@ -651,29 +659,25 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            try
+            do
             {
-                do
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}");
+
+                if (!string.IsNullOrEmpty(str))
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}");
-
-                    if (!string.IsNullOrEmpty(str))
+                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                    if (obj.code == 0 && obj.data.replies != null)
                     {
-                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
 
-                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                            {
-                                rs.Add(reply.mid);
-                            }
+                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                        {
+                            rs.Add(reply.mid);
                         }
                     }
-                    pn++;
-                } while (pn * 10 < count);
-            }
-            catch { }
+                }
+                pn++;
+            } while (pn * 10 < count);
 
             return rs.ToArray();
         }
@@ -689,29 +693,25 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            try
+            do
             {
-                do
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}");
+
+                if (!string.IsNullOrEmpty(str))
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}");
-
-                    if (!string.IsNullOrEmpty(str))
+                    H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
+                    if (obj.code == 0 && obj.data.replies != null)
                     {
-                        H_Reply_Data obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
 
-                            foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                            {
-                                rs.Add(reply.mid);
-                            }
+                        foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
+                        {
+                            rs.Add(reply.mid);
                         }
                     }
-                    pn++;
-                } while (pn * 10 < count);
-            }
-            catch { }
+                }
+                pn++;
+            } while (pn * 10 < count);
 
             return rs.ToArray();
         }
@@ -727,29 +727,25 @@ namespace BiliRaffle
             int pn = 1, count = 10;
             List<string> rs = new List<string>();
             Regex reg_count = new Regex("\"count\":(\\d+)");
-            try
+            do
             {
-                do
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}");
+
+                if (!string.IsNullOrEmpty(str))
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}");
-
-                    if (!string.IsNullOrEmpty(str))
+                    V_Comment_Templete obj = JsonConvert.DeserializeObject<V_Comment_Templete>(str);
+                    if (obj.code == 0 && obj.data.replies != null)
                     {
-                        V_Comment_Templete obj = JsonConvert.DeserializeObject<V_Comment_Templete>(str);
-                        if (obj.code == 0)
-                        {
-                            if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
+                        if (pn == 1) count = int.Parse(reg_count.Match(str).Groups[1].Value);
 
-                            foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
-                            {
-                                rs.Add(reply.member.mid);
-                            }
+                        foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
+                        {
+                            rs.Add(reply.member.mid);
                         }
                     }
-                    pn++;
-                } while (pn * 10 < count);
-            }
-            catch { }
+                }
+                pn++;
+            } while (pn * 10 < count);
 
             return rs.ToArray();
         }
@@ -950,7 +946,7 @@ namespace BiliRaffle
             {
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
                 string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}");
-                if (string.IsNullOrEmpty(pre_str))return;
+                if (string.IsNullOrEmpty(pre_str)) return;
                 JObject o = JObject.Parse(pre_str);
                 if ((int)o["code"] != 0) return;
                 switch ((int)o["data"]["card"]["desc"]["type"])
@@ -1134,24 +1130,27 @@ namespace BiliRaffle
                                 count = int.Parse(reg_count.Match(str).Groups[1].Value);
                                 ViewModel.Main.PushMsg($"视频{id}共有{count}条评论。开始统计uid...");
                             }
-                            foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
+                            if (obj.data.replies != null && obj.data.replies.Length != 0)
                             {
-                                ucount += AddUid(reply.member.mid, onechance);
-
-                                if (IsRepliesInFloors)
+                                foreach (V_Comment_Templete.Data.Reply reply in obj.data.replies)
                                 {
-                                    if (reply.rcount > 0 && reply.rcount <= 3)
+                                    ucount += AddUid(reply.member.mid, onechance);
+
+                                    if (IsRepliesInFloors)
                                     {
-                                        foreach (V_Comment_Templete.Data.Reply j in reply.replies)
+                                        if (reply.rcount > 0 && reply.rcount <= 3)
                                         {
-                                            ucount += AddUid(j.member.mid, onechance);
+                                            foreach (V_Comment_Templete.Data.Reply j in reply.replies)
+                                            {
+                                                ucount += AddUid(j.member.mid, onechance);
+                                            }
                                         }
-                                    }
-                                    else if (reply.rcount > 3)
-                                    {
-                                        foreach (string mid in Get_V_RepliesInFloors(rid, reply.rpid))
+                                        else if (reply.rcount > 3)
                                         {
-                                            ucount += AddUid(mid, onechance);
+                                            foreach (string mid in Get_V_RepliesInFloors(rid, reply.rpid))
+                                            {
+                                                ucount += AddUid(mid, onechance);
+                                            }
                                         }
                                     }
                                 }
