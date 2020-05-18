@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BiliRaffle"
         mc:Ignorable="d"
-        Title="登录B站账号" Height="450" Width="341.6" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False" Icon="icon.ico">
+        Title="登录B站账号" Height="450" Width="341.6" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False" Icon="icon.ico" Closed="Window_Closed">
     <Grid>
         <Label Margin="27,42,26.2,349" FontSize="16"  Content="请使用Bilibili手机APP扫描二维码登录" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
         <Image x:Name="qrcodeBox" HorizontalAlignment="Left" Height="200" Margin="60,76,0,0" VerticalAlignment="Top" Width="200" />
