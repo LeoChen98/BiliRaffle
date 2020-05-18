@@ -17,18 +17,32 @@ namespace BiliRaffle
     {
         #region Private Fields
 
+        private static LoginWindow _instance;
         private Timer Monitor, Refresher;
 
         #endregion Private Fields
 
-        #region Public Constructors
+        #region Private Constructors
 
-        public LoginWindow()
+        private LoginWindow()
         {
             InitializeComponent();
         }
 
-        #endregion Public Constructors
+        #endregion Private Constructors
+
+        #region Public Properties
+
+        public static LoginWindow Instance
+        {
+            get
+            {
+                if (_instance == null) _instance = new LoginWindow();
+                return _instance;
+            }
+        }
+
+        #endregion Public Properties
 
         #region Public Methods
 
@@ -169,6 +183,11 @@ namespace BiliRaffle
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             GetQrcode();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            _instance = null;
         }
 
         #endregion Private Methods

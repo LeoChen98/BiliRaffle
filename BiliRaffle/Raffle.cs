@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using static DmCommons.ErrorReport;
 
 #pragma warning disable CS0649
@@ -31,14 +32,11 @@ namespace BiliRaffle
             {
                 if (string.IsNullOrEmpty(_Cookies))
                 {
-                re:
-                    if ((bool)App.Current.Dispatcher.Invoke(() =>
+                    if(!System.Windows.Application.Current.Dispatcher.Invoke(()=> { return (bool)LoginWindow.Instance.ShowDialog(); }))
                     {
-                        return (new LoginWindow()).ShowDialog();
-                    }))
-                        return _Cookies;
-                    else
-                        goto re;
+                        return null;
+                    }
+                    return _Cookies;
                 }
                 else
                 {
@@ -68,6 +66,11 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static void Start(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
+            if (Cookies == null)
+            {
+                ViewModel.Main.PushMsg("账号未登录，请登录账号或关闭需登录功能后再试！");
+                return;
+            }
             try
             {
                 ViewModel.Main.PushMsg("---------抽奖开始---------");
@@ -202,6 +205,11 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static async void StartAsync(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
+            if (Cookies == null)
+            {
+                ViewModel.Main.PushMsg("账号未登录，请登录账号或关闭需登录功能后再试！");
+                return;
+            }
             try
             {
                 ViewModel.Main.PushMsg("---------抽奖开始---------");
