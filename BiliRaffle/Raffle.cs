@@ -56,7 +56,7 @@ namespace BiliRaffle
         /// <summary>
         /// 开始抽奖
         /// </summary>
-        /// <param name="url">Url</param>
+        /// <param name="urlText">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="IsReposeEnabled"></param>
         /// <param name="IsCommentEnabled"></param>
@@ -66,7 +66,7 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static void Start(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
-            if (Cookies == null)
+            if (CheckFollow && Cookies == null)
             {
                 ViewModel.Main.PushMsg("账号未登录，请登录账号或关闭需登录功能后再试！");
                 return;
@@ -195,7 +195,7 @@ namespace BiliRaffle
         /// <summary>
         /// 开始抽奖（异步）
         /// </summary>
-        /// <param name="url">Url</param>
+        /// <param name="urlText">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="IsReposeEnabled"></param>
         /// <param name="IsCommentEnabled"></param>
@@ -205,7 +205,7 @@ namespace BiliRaffle
         /// <param name="FilterCondition">抽奖号阈值</param>
         public static async void StartAsync(string urlText, int num, bool IsReposeEnabled, bool IsCommentEnabled, bool OneChance = false, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5, bool IsRepliesInFloors = true)
         {
-            if (Cookies == null)
+            if (CheckFollow && Cookies == null)
             {
                 ViewModel.Main.PushMsg("账号未登录，请登录账号或关闭需登录功能后再试！");
                 return;
