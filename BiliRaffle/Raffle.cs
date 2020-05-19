@@ -56,7 +56,7 @@ namespace BiliRaffle
         /// <summary>
         /// 开始抽奖
         /// </summary>
-        /// <param name="url">Url</param>
+        /// <param name="urlText">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="IsReposeEnabled"></param>
         /// <param name="IsCommentEnabled"></param>
@@ -195,7 +195,7 @@ namespace BiliRaffle
         /// <summary>
         /// 开始抽奖（异步）
         /// </summary>
-        /// <param name="url">Url</param>
+        /// <param name="urlText">Url</param>
         /// <param name="num">中奖人数</param>
         /// <param name="IsReposeEnabled"></param>
         /// <param name="IsCommentEnabled"></param>
