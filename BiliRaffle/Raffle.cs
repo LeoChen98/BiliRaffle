@@ -186,6 +186,13 @@ namespace BiliRaffle
                 }
                 ViewModel.Main.PushMsg("---------抽奖结束---------");
             }
+            catch (WebException wex)
+            {
+                if (wex.Message.Contains("412"))
+                    System.Windows.Forms.MessageBox.Show($"B站服务器已拒绝访问，请稍后重试。\r\n详细信息：\r\n{wex.Message}");
+                else
+                    System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{wex.Message}");
+            }
             catch (Exception ex)
             {
                 Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
@@ -337,6 +344,13 @@ namespace BiliRaffle
                     ViewModel.Main.PushMsg(GetUName(i) + "(uid:" + i + ")");
                 }
                 ViewModel.Main.PushMsg("---------抽奖结束---------");
+            }
+            catch (WebException wex)
+            {
+                if(wex.Message.Contains("412"))
+                    System.Windows.Forms.MessageBox.Show($"B站服务器已拒绝访问，请稍后重试。\r\n详细信息：\r\n{wex.Message}");
+                else
+                    System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{wex.Message}");
             }
             catch (Exception ex)
             {
