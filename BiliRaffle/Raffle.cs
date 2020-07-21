@@ -1180,7 +1180,7 @@ namespace BiliRaffle
                         }
                     }
                     pn++;
-                } while (pn * 20 < count);
+                } while (pn * 20 <= (count / 20 + 1) * 20);
 
                 ViewModel.Main.PushMsg($"视频{id}下共统计到{ucount}个（次）uid评论");
             }
