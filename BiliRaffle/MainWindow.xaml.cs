@@ -74,7 +74,7 @@ namespace BiliRaffle
                 req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
                 req.AllowAutoRedirect = false;
                 rep = (HttpWebResponse)req.GetResponse();
-                result = new Regex("\\d+?.\\d+?.\\d+?.(\\d+?)(|_\\S+)").Match(rep.Headers["Location"]);
+                result = new Regex("\\d+\\.\\d+\\.\\d+\\.(\\d+)(|_\\S+)").Match(rep.Headers["Location"]);
             }
             finally
             {
@@ -173,6 +173,7 @@ namespace BiliRaffle
             {
                 Match new_ver = CheckUpdate();
                 if (new_ver != null && new_ver.Success && int.Parse(new_ver.Groups[1].Value) > Assembly.GetExecutingAssembly().GetName().Version.Revision) ViewModel.Main.PushMsg($"检查到新版本{new_ver.Value}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver.Value}】下载。");
+                else ViewModel.Main.PushMsg("版本已是最新！");
             }
         }
 
