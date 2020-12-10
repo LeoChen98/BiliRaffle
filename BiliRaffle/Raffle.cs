@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -1079,11 +1080,12 @@ namespace BiliRaffle
             foreach (var id in ids)
             {
                 T_Repost_Data Data = new T_Repost_Data();
-                int i = 0, ucount = 0;
+                int i = 0, ucount = 0, count=0 ;
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的转发");
-                while (Data.has_more)
+                while (Data.has_more == 1)
                 {
-                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/view_repost?dynamic_id={id}&offset={i * 20}");
+                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i==0 ? "" : $"&offset={Data.offset}")}");
+                    Debug.WriteLine(str);
                     if (!string.IsNullOrEmpty(str))
                     {
                         JObject obj = JObject.Parse(str);
@@ -1091,20 +1093,23 @@ namespace BiliRaffle
                         {
                             Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
 
-                            if (i == 0) ViewModel.Main.PushMsg($"动态{id} 共有{Data.total_count}条转发。开始统计uid...");
+                            if (i == 0) ViewModel.Main.PushMsg($"动态{id} 共有{Data.total}条转发。开始统计uid...");
 
-                            if (Data.comments != null && Data.comments.Length != 0)
+
+
+                            if (Data.items != null && Data.items.Length != 0)
                             {
-                                foreach (T_Repost_Data.comment comment in Data.comments)
+                                foreach (T_Repost_Data.Desc comment in Data.items)
                                 {
-                                    ucount += AddUid(comment.uid.ToString(), OneChance);
+                                    ucount += AddUid(comment.desc.uid.ToString(), OneChance);
+                                    count++;
                                 }
                             }
                         }
                     }
                     i++;
                 }
-                ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个（次）uid转发");
+                ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个uid的{count}次转发");
             }
         }
 
@@ -1298,21 +1303,26 @@ namespace BiliRaffle
         {
             #region Public Fields
 
-            public comment[] comments;
-            public bool has_more = true;
-            public int total_count;
+            public Desc[] items;
+            public int has_more = 1;
+            public int total;
+            public string offset;
 
             #endregion Public Fields
 
             #region Public Classes
 
-            public class comment
+            public class Desc
             {
-                #region Public Fields
+                public comment desc;
+                public class comment
+                {
+                    #region Public Fields
 
-                public int uid;
+                    public int uid;
 
-                #endregion Public Fields
+                    #endregion Public Fields
+                }
             }
 
             #endregion Public Classes
