@@ -40,11 +40,13 @@
     <StartupObject>BiliRaffle.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DmCommons.ErrorReport">
-      <HintPath>..\..\DmCommons\bin\Release\net45\DmCommons.ErrorReport.dll</HintPath>
+    <Reference Include="DmCommons.ErrorReport, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>DmCommons\libs\DmCommons.ErrorReport.dll</HintPath>
     </Reference>
-    <Reference Include="DmCommons.Http">
-      <HintPath>..\..\DmCommons\bin\Release\net45\DmCommons.Http.dll</HintPath>
+    <Reference Include="DmCommons.Http, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>DmCommons\libs\DmCommons.Http.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>

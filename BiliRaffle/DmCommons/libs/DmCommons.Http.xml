@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DmCommons.Http</name>
+    </assembly>
+    <members>
+        <member name="T:DmCommons.Http">
+            <summary>
+            HTTP封装类
+            </summary>
+        </member>
+        <member name="M:DmCommons.Http.GetBody(System.String,System.Net.CookieCollection,System.String,System.String,System.Net.WebHeaderCollection)">
+            <summary>
+            Get方法
+            </summary>
+            <param name="url">URL</param>
+            <param name="cookie">cookies集合实例</param>
+            <param name="referer">Referer</param>
+            <param name="user_agent">User-agent</param>
+            <param name="specialheaders">除前面之外的Headers</param>
+            <returns>请求返回体</returns>
+        </member>
+        <member name="M:DmCommons.Http.GetBodyOutCookies(System.String,System.Net.CookieCollection@,System.Net.CookieCollection,System.String,System.String,System.Net.WebHeaderCollection)">
+            <summary>
+            会返回cookies的Get方法
+            </summary>
+            <param name="url">URL</param>
+            <param name="out_cookies">返回的cookies集合实例</param>
+            <param name="cookie">cookies集合实例</param>
+            <param name="referer">Referer</param>
+            <param name="user_agent">User-agent</param>
+            <param name="specialheaders">除前面之外的Headers</param>
+            <returns>请求返回体</returns>
+        </member>
+        <member name="M:DmCommons.Http.GetPicOutCookies(System.String,System.Net.CookieCollection@,System.Net.CookieCollection,System.String,System.String,System.Net.WebHeaderCollection)">
+            <summary>
+            会返回cookies的Get方法
+            </summary>
+            <param name="url">URL</param>
+            <param name="out_cookies">返回的cookies集合实例</param>
+            <param name="cookie">cookies集合实例</param>
+            <param name="referer">Referer</param>
+            <param name="user_agent">User-agent</param>
+            <param name="specialheaders">除前面之外的Headers</param>
+            <returns>请求返回体</returns>
+        </member>
+        <member name="M:DmCommons.Http.PostBody(System.String,System.String,System.Net.CookieCollection,System.String,System.String,System.String,System.Net.WebHeaderCollection)">
+            <summary>
+            POST方法
+            </summary>
+            <param name="url">URL</param>
+            <param name="data">要POST发送的文本</param>
+            <param name="cookie">cookies集合实例</param>
+            <param name="contenttype">数据类型</param>
+            <param name="referer">Referer</param>
+            <param name="user_agent">User-agent</param>
+            <param name="specialheaders">除前面之外的Headers</param>
+            <returns>请求返回体</returns>
+        </member>
+        <member name="M:DmCommons.Http.PostBodyOutCookies(System.String,System.Net.CookieCollection@,System.String,System.Net.CookieCollection,System.String,System.String,System.String,System.Net.WebHeaderCollection)">
+            <summary>
+            返回cookies的POST方法
+            </summary>
+            <param name="url">URL</param>
+            <param name="out_cookies">返回的cookies集合实例</param>
+            <param name="data">要POST发送的文本</param>
+            <param name="cookie">cookies集合实例</param>
+            <param name="contenttype">数据类型</param>
+            <param name="referer">Referer</param>
+            <param name="user_agent">User-agent</param>
+            <param name="specialheaders">除前面之外的Headers</param>
+            <returns>请求返回体</returns>
+        </member>
+    </members>
+</doc>
