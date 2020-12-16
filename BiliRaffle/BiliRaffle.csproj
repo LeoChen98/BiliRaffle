@@ -137,5 +137,11 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="DmCommons\libs\DmCommons.ErrorReport.dll" />
+    <Resource Include="DmCommons\libs\DmCommons.ErrorReport.xml" />
+    <Content Include="DmCommons\libs\DmCommons.Http.dll" />
+    <Resource Include="DmCommons\libs\DmCommons.Http.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
