@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using static DmCommons.ErrorReport;
 
 #pragma warning disable CS0649
@@ -33,7 +32,7 @@ namespace BiliRaffle
             {
                 if (string.IsNullOrEmpty(_Cookies))
                 {
-                    if(!System.Windows.Application.Current.Dispatcher.Invoke(()=> { return (bool)LoginWindow.Instance.ShowDialog(); }))
+                    if (!System.Windows.Application.Current.Dispatcher.Invoke(() => { return (bool)LoginWindow.Instance.ShowDialog(); }))
                     {
                         return null;
                     }
@@ -87,7 +86,7 @@ namespace BiliRaffle
 
                 foreach (var urlRaw in urls)
                 {
-                    var url = urlRaw.Split(new char[]{ '?','#'})[0];
+                    var url = urlRaw.Split(new char[] { '?', '#' })[0];
                     string[] tmp = url.Split('/');
                     if (tmp.Length < 4) continue;
 
@@ -95,7 +94,8 @@ namespace BiliRaffle
                     {
                         case "t.bilibili.com":
                             if (T_ids.Count == 0) flag += 1;
-                            T_ids.Add(tmp[3]);
+                            string tid = Get_T_Id(tmp[3]);
+                            if (!string.IsNullOrEmpty(tid)) T_ids.Add(tid);
                             break;
 
                         case "h.bilibili.com":
@@ -241,7 +241,8 @@ namespace BiliRaffle
                     {
                         case "t.bilibili.com":
                             if (T_ids.Count == 0) flag += 1;
-                            T_ids.Add(tmp[3]);
+                            string tid = Get_T_Id(tmp[3]);
+                            if (!string.IsNullOrEmpty(tid)) T_ids.Add(tid);
                             break;
 
                         case "h.bilibili.com":
@@ -348,7 +349,7 @@ namespace BiliRaffle
             }
             catch (WebException wex)
             {
-                if(wex.Message.Contains("412"))
+                if (wex.Message.Contains("412"))
                     System.Windows.Forms.MessageBox.Show($"B站服务器已拒绝访问，请稍后重试。\r\n详细信息：\r\n{wex.Message}");
                 else
                     System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{wex.Message}");
@@ -706,7 +707,20 @@ namespace BiliRaffle
         }
 
         /// <summary>
-        /// 获取相簿评论楼中楼
+        /// 获取真实动态id
+        /// </summary>
+        /// <param name="oid">oid</param>
+        private static string Get_T_Id(string oid)
+        {
+            string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2");
+            if (string.IsNullOrEmpty(pre_str)) return "";
+            JObject o = JObject.Parse(pre_str);
+            if ((int)o["code"] != 0) return "";
+            return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
+        }
+
+        /// <summary>
+        /// 获取动态评论楼中楼
         /// </summary>
         /// <param name="rid">相簿id</param>
         /// <param name="rpid">回复root</param>
@@ -1080,11 +1094,11 @@ namespace BiliRaffle
             foreach (var id in ids)
             {
                 T_Repost_Data Data = new T_Repost_Data();
-                int i = 0, ucount = 0, count=0 ;
+                int i = 0, ucount = 0, count = 0;
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的转发");
                 while (Data.has_more == 1)
                 {
-                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i==0 ? "" : $"&offset={Data.offset}")}");
+                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}");
                     Debug.WriteLine(str);
                     if (!string.IsNullOrEmpty(str))
                     {
@@ -1094,8 +1108,6 @@ namespace BiliRaffle
                             Data = JsonConvert.DeserializeObject<T_Repost_Data>(obj["data"].ToString());
 
                             if (i == 0) ViewModel.Main.PushMsg($"动态{id} 共有{Data.total}条转发。开始统计uid...");
-
-
 
                             if (Data.items != null && Data.items.Length != 0)
                             {
@@ -1303,10 +1315,10 @@ namespace BiliRaffle
         {
             #region Public Fields
 
-            public Desc[] items;
             public int has_more = 1;
-            public int total;
+            public Desc[] items;
             public string offset;
+            public int total;
 
             #endregion Public Fields
 
@@ -1314,7 +1326,14 @@ namespace BiliRaffle
 
             public class Desc
             {
+                #region Public Fields
+
                 public comment desc;
+
+                #endregion Public Fields
+
+                #region Public Classes
+
                 public class comment
                 {
                     #region Public Fields
@@ -1323,6 +1342,8 @@ namespace BiliRaffle
 
                     #endregion Public Fields
                 }
+
+                #endregion Public Classes
             }
 
             #endregion Public Classes

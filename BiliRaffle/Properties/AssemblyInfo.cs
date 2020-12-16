@@ -47,6 +47,6 @@ using System.Windows;
 //可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值
 //通过使用 "*"，如下所示:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.10.12")]
-[assembly: AssemblyFileVersion("1.0.10.12")]
+[assembly: AssemblyVersion("1.0.11.13")]
+[assembly: AssemblyFileVersion("1.0.11.13")]
 [assembly: Guid("fca5c3d7-30b6-4224-a77f-5851314bd435")]
