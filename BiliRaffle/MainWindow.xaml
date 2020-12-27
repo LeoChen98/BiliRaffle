@@ -11,6 +11,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/BiliRaffle;component/WindowBaseStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <local:IsEqualConverter x:Key="IsEqualConverter" />
             <local:IsNullOrEmptyConverter x:Key="IsNullOrEmptyConverter" />
         </ResourceDictionary>
@@ -404,8 +405,8 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_Filter_Condition" Text="抽奖指数阈值（1~10）：" HorizontalAlignment="Left" Margin="200,266,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="135" />
-        <TextBox x:Name="TB_Filter_Condition" Margin="340,258,325,0" Height="35" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.FilterCondition}" VerticalScrollBarVisibility="Auto" Background="{x:Null}" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="#FF818181" />
+        <TextBlock x:Name="Lbl_Filter_Condition" Text="抽奖指数阈值（1~10）：" HorizontalAlignment="Left" Margin="200,266,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="135" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="TB_Filter_Condition" Margin="340,258,325,0" Height="35" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.FilterCondition}" VerticalScrollBarVisibility="Auto" Background="{x:Null}" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="#FF818181" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
         <Button x:Name="Btn_Start" Content="开始抽奖" HorizontalAlignment="Left" Margin="145,331,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161" Height="35" Command="{Binding Main.Start}">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">
