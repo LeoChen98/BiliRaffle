@@ -412,6 +412,10 @@ namespace BiliRaffle
                                     }
                                 }
                             }
+                        }else if(obj.code == -404)
+                        {
+                            ViewModel.Main.PushMsg($"画簿{id}不存在！");
+                            break;
                         }
                     }
                     i++;
@@ -510,6 +514,10 @@ namespace BiliRaffle
                                     }
                                 }
                             }
+                        }else if(obj.code == 12002)
+                        {
+                            ViewModel.Main.PushMsg($"专栏cv{rid}已被删除或评论区关闭！");
+                            break;
                         }
                     }
                     i++;
@@ -715,8 +723,21 @@ namespace BiliRaffle
             string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2");
             if (string.IsNullOrEmpty(pre_str)) return "";
             JObject o = JObject.Parse(pre_str);
-            if ((int)o["code"] != 0) return "";
-            return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
+
+            switch ((int)o["code"])
+            {
+                case 0:
+                    return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
+
+                case 500205:
+                    ViewModel.Main.PushMsg($"动态{oid}不存在！");
+                    return "";
+
+                default:
+                    ViewModel.Main.PushMsg($"动态{oid}无效！");
+                    return "";
+            }
+            
         }
 
         /// <summary>
@@ -925,7 +946,7 @@ namespace BiliRaffle
                                 return true;
 
                             default:
-                                ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。(relation:{obj["data"]["be_relation"]["attribute"].ToString()})");
+                                ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。(relation:{obj["data"]["be_relation"]["attribute"]})");
                                 return false;
                         }
                     }
@@ -1152,6 +1173,12 @@ namespace BiliRaffle
 
                 string rid;
                 rid = reg.IsMatch(id) ? BV2AV(id) : id.ToLower().Replace("av", "");
+
+                if(string.IsNullOrEmpty(rid))
+                {
+                    ViewModel.Main.PushMsg($"视频{id}已被删除或无法访问！");
+                    continue;
+                }
 
                 int pn = 1, count = 20, ucount = 0;
                 Regex reg_count = new Regex("\"count\":(\\d+)");
