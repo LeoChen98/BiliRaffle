@@ -354,6 +354,20 @@ namespace BiliRaffle
                 else
                     System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{wex.Message}");
             }
+            catch(AggregateException aex)
+            {
+                string aex_detail = "";
+
+                foreach (Exception e in aex.InnerExceptions)
+                {
+                    aex_detail += $"  * {e?.GetType()}发生在{e?.TargetSite}中\r\n" +
+                        $"    * 信息：{e?.Message}\r\n" +
+                        $"    * 堆栈：{e?.StackTrace}\r\n" +
+                        $"\r\n";
+                }
+
+                Github.Send(REPO, new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors,aex_detail }));
+            }
             catch (Exception ex)
             {
                 Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));

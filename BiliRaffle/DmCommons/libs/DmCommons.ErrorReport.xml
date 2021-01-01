@@ -4,7 +4,59 @@
         <name>DmCommons.ErrorReport</name>
     </assembly>
     <members>
+        <member name="T:DmCommons.ExceptionEx">
+            <summary>
+            提供额外信息的错误类
+            </summary>
+        </member>
+        <member name="M:DmCommons.ExceptionEx.#ctor(System.String[])">
+            <summary>
+            使用指定的额外信息初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            </summary>
+            <param name="extra_info">额外信息</param>
+        </member>
+        <member name="M:DmCommons.ExceptionEx.#ctor(System.String,System.String[])">
+            <summary>
+            使用指定的错误信息和额外信息初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            </summary>
+            <param name="message">错误信息</param>
+            <param name="extra_info">额外信息</param>
+        </member>
+        <member name="M:DmCommons.ExceptionEx.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext,System.String[])">
+            <summary>
+            使用序列化数据初始化<see cref="T:DmCommons.ExceptionEx">ExceptionEx</see>类的新实例。
+            </summary>
+            <param name="info">包含有关所引发异常的序列化对象数据的<see cref="T:System.Runtime.Serialization.SerializationInfo"/></param>
+            <param name="context"><see cref="T:System.Runtime.Serialization.StreamingContext"/>,它包含源或目标的上下文信息</param>
+            <param name="extra_info">额外信息</param>
+        </member>
+        <member name="M:DmCommons.ExceptionEx.#ctor(System.String,System.Exception,System.String[])">
+            <summary>
+            使用指定的错误信息和对作为此异常原因的内部异常的应用来初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            </summary>
+            <param name="message">错误信息</param>
+            <param name="innerException">导致当前异常的异常</param>
+            <param name="extra_info">额外信息</param>
+        </member>
+        <member name="P:DmCommons.ExceptionEx.Class_Name">
+            <summary>
+            错误发生的类名
+            </summary>
+        </member>
+        <member name="P:DmCommons.ExceptionEx.Extra_Info">
+            <summary>
+            额外信息
+            </summary>
+        </member>
+        <member name="P:DmCommons.ExceptionEx.Version">
+            <summary>
+            程序集版本号
+            </summary>
+        </member>
         <member name="T:DmCommons.ErrorReport">
+            <summary>
+            错误报告类
+            </summary>
             <summary>
             错误报告类
             </summary>
@@ -39,7 +91,7 @@
             <param name="repo">项目名 e.g. LeoChen98/abc </param>
             <param name="ex"><see cref="T:DmCommons.ExceptionEx"/>实例</param>
         </member>
-        <member name="M:DmCommons.ErrorReport.Github.Send(System.String,System.String,System.String,System.Exception,System.Object[])">
+        <member name="M:DmCommons.ErrorReport.Github.Send(System.String,System.String,System.String,System.Exception,System.String[])">
             <summary>
             以指定版本的类名、错误实例和额外信息向指定的仓库发送报告
             </summary>
@@ -49,54 +101,44 @@
             <param name="ex">错误实例</param>
             <param name="extra_info">拓展信息</param>
         </member>
-        <member name="T:DmCommons.ExceptionEx">
+        <member name="T:DmCommons.ErrorReport.ServerChan">
             <summary>
-            提供额外信息的错误类
+            Server酱
             </summary>
         </member>
-        <member name="M:DmCommons.ExceptionEx.#ctor(System.Object[])">
+        <member name="M:DmCommons.ErrorReport.ServerChan.Send(System.String,System.String)">
             <summary>
-            使用指定的额外信息初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            以指定的标题和内容向指定的仓库发送报告
             </summary>
-            <param name="extra_info">额外信息</param>
+            <param name="title">issue标题</param>
+            <param name="content">issue内容</param>
         </member>
-        <member name="M:DmCommons.ExceptionEx.#ctor(System.String,System.Object[])">
+        <member name="M:DmCommons.ErrorReport.ServerChan.Send(System.String,System.String,System.String,System.Exception,System.String)">
             <summary>
-            使用指定的错误信息和额外信息初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            以指定版本的类名、错误实例和额外信息向指定的仓库发送报告
             </summary>
-            <param name="message">错误信息</param>
-            <param name="extra_info">额外信息</param>
+            <param name="pid">项目代号</param>
+            <param name="version">版本号</param>
+            <param name="class_name">类名</param>
+            <param name="ex">错误实例</param>
+            <param name="extra_info">拓展信息</param>
         </member>
-        <member name="M:DmCommons.ExceptionEx.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext,System.Object[])">
+        <member name="M:DmCommons.ErrorReport.ServerChan.Send(System.String,DmCommons.ExceptionEx)">
             <summary>
-            使用序列化数据初始化<see cref="T:DmCommons.ExceptionEx">ExceptionEx</see>类的新实例。
+            以指定的<see cref="T:DmCommons.ExceptionEx"/>向指定的仓库发送报告
             </summary>
-            <param name="info">包含有关所引发异常的序列化对象数据的<see cref="T:System.Runtime.Serialization.SerializationInfo"/></param>
-            <param name="context"><see cref="T:System.Runtime.Serialization.StreamingContext"/>,它包含源或目标的上下文信息</param>
-            <param name="extra_info">额外信息</param>
+            <param name="pid">项目代号</param>
+            <param name="ex"><see cref="T:DmCommons.ExceptionEx"/>实例</param>
         </member>
-        <member name="M:DmCommons.ExceptionEx.#ctor(System.String,System.Exception,System.Object[])">
+        <member name="M:DmCommons.ErrorReport.ServerChan.Send(System.String,System.String,System.String,System.Exception,System.String[])">
             <summary>
-            使用指定的错误信息和对作为此异常原因的内部异常的应用来初始化<see cref="T:DmCommons.ExceptionEx"/>类的新实例。
+            以指定版本的类名、错误实例和额外信息向指定的仓库发送报告
             </summary>
-            <param name="message">错误信息</param>
-            <param name="innerException">导致当前异常的异常</param>
-            <param name="extra_info">额外信息</param>
-        </member>
-        <member name="P:DmCommons.ExceptionEx.Class_Name">
-            <summary>
-            错误发生的类名
-            </summary>
-        </member>
-        <member name="P:DmCommons.ExceptionEx.Extra_Info">
-            <summary>
-            额外信息
-            </summary>
-        </member>
-        <member name="P:DmCommons.ExceptionEx.Version">
-            <summary>
-            程序集版本号
-            </summary>
+            <param name="pid">项目代号 </param>
+            <param name="version">版本号</param>
+            <param name="class_name">类名</param>
+            <param name="ex">错误实例</param>
+            <param name="extra_info">拓展信息</param>
         </member>
         <member name="T:DmCommons.Properties.Resources">
             <summary>
@@ -110,8 +152,8 @@
         </member>
         <member name="P:DmCommons.Properties.Resources.Culture">
             <summary>
-              重写当前线程的 CurrentUICulture 属性
-              重写当前线程的 CurrentUICulture 属性。
+              重写当前线程的 CurrentUICulture 属性，对
+              使用此强类型资源类的所有资源查找执行重写。
             </summary>
         </member>
         <member name="P:DmCommons.Properties.Resources.IssueDataTemplete">
@@ -128,6 +170,11 @@
               ]
             }} 的本地化字符串。
              </summary>
+        </member>
+        <member name="P:DmCommons.Properties.Resources.ServerChanDataTemplete">
+            <summary>
+              查找类似 text={0}&amp;desp={1} 的本地化字符串。
+            </summary>
         </member>
     </members>
 </doc>
