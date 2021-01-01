@@ -727,9 +727,17 @@ namespace BiliRaffle
             switch ((int)o["code"])
             {
                 case 0:
+
                     return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
 
                 case 500205:
+                    string pre_str_old = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}");
+                    if (!string.IsNullOrEmpty(pre_str_old))
+                    {
+                        JObject oo = JObject.Parse(pre_str_old);
+                        if (oo["data"]["card"] != null)
+                            return oid;
+                    }
                     ViewModel.Main.PushMsg($"动态{oid}不存在！");
                     return "";
 
@@ -737,7 +745,7 @@ namespace BiliRaffle
                     ViewModel.Main.PushMsg($"动态{oid}无效！");
                     return "";
             }
-            
+
         }
 
         /// <summary>
