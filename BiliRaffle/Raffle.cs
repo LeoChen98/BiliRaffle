@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using static DmCommons.ErrorReport;
 
@@ -354,19 +355,34 @@ namespace BiliRaffle
                 else
                     System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{wex.Message}");
             }
-            catch(AggregateException aex)
+            catch (AggregateException aex)
             {
                 string aex_detail = "";
 
+                int count = 0;
                 foreach (Exception e in aex.InnerExceptions)
                 {
-                    aex_detail += $"  * {e?.GetType()}发生在{e?.TargetSite}中\r\n" +
+                    if(e.GetType() != typeof(WebException))
+                    {
+                        ReportableError:
+                        aex_detail += $"  * {e?.GetType()}发生在{e?.TargetSite}中\r\n" +
                         $"    * 信息：{e?.Message}\r\n" +
                         $"    * 堆栈：{e?.StackTrace}\r\n" +
                         $"\r\n";
+                        count++;
+                    }
+                    else
+                    {
+                        if (e.Message.Contains("412"))
+                            System.Windows.Forms.MessageBox.Show($"B站服务器已拒绝访问，请稍后重试。\r\n详细信息：\r\n{e.Message}");
+                        else
+                            System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{e.Message}");
+                    }
+
+                    
                 }
 
-                Github.Send(REPO, new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors,aex_detail }));
+                Github.Send(REPO, new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors, aex_detail }));
             }
             catch (Exception ex)
             {
@@ -426,13 +442,16 @@ namespace BiliRaffle
                                     }
                                 }
                             }
-                        }else if(obj.code == -404)
+                        }
+                        else if (obj.code == -404)
                         {
                             ViewModel.Main.PushMsg($"画簿{id}不存在！");
                             break;
                         }
                     }
                     i++;
+
+                    Thread.Sleep(500);
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
                 ViewModel.Main.PushMsg($"音频au{rid}下共统计到{ucount}个（次）uid评论");
@@ -528,13 +547,16 @@ namespace BiliRaffle
                                     }
                                 }
                             }
-                        }else if(obj.code == 12002)
+                        }
+                        else if (obj.code == 12002)
                         {
                             ViewModel.Main.PushMsg($"专栏cv{rid}已被删除或评论区关闭！");
                             break;
                         }
                     }
                     i++;
+
+                    Thread.Sleep(500);
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
                 ViewModel.Main.PushMsg($"专栏cv{rid}下共统计到{ucount}个（次）uid评论");
@@ -656,6 +678,8 @@ namespace BiliRaffle
                     }
                 }
                 pn++;
+
+                Thread.Sleep(500);
             } while (pn * 10 < count);
 
             return rs.ToArray();
@@ -690,6 +714,8 @@ namespace BiliRaffle
                     }
                 }
                 pn++;
+
+                Thread.Sleep(500);
             } while (pn * 10 < count);
             return rs.ToArray();
         }
@@ -723,6 +749,8 @@ namespace BiliRaffle
                     }
                 }
                 pn++;
+
+                Thread.Sleep(500);
             } while (pn * 10 < count);
 
             return rs.ToArray();
@@ -791,6 +819,8 @@ namespace BiliRaffle
                     }
                 }
                 pn++;
+
+                Thread.Sleep(500);
             } while (pn * 10 < count);
 
             return rs.ToArray();
@@ -825,6 +855,8 @@ namespace BiliRaffle
                     }
                 }
                 pn++;
+
+                Thread.Sleep(500);
             } while (pn * 10 < count);
 
             return rs.ToArray();
@@ -926,6 +958,8 @@ namespace BiliRaffle
                         }
                     }
                     i++;
+
+                    Thread.Sleep(500);
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
                 ViewModel.Main.PushMsg($"相簿{id}下共统计到{ucount}个（次）uid评论");
@@ -952,30 +986,37 @@ namespace BiliRaffle
         /// <returns>是否</returns>
         private static bool IsFollowing(string uid)
         {
-            if (!string.IsNullOrEmpty(Cookies))
+            try
             {
-                string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/relation?mid={uid}", GetCookies(Cookies));
-                if (!string.IsNullOrEmpty(str))
+                if (!string.IsNullOrEmpty(Cookies))
                 {
-                    JObject obj = JObject.Parse(str);
-                    if ((int)obj["code"] == 0)
+                    string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/relation?mid={uid}", GetCookies(Cookies));
+                    if (!string.IsNullOrEmpty(str))
                     {
-                        switch ((int)obj["data"]["be_relation"]["attribute"])
+                        JObject obj = JObject.Parse(str);
+                        if ((int)obj["code"] == 0)
                         {
-                            case 1://悄悄关注
-                            case 2://关注
-                            case 6://互关
-                                return true;
+                            switch ((int)obj["data"]["be_relation"]["attribute"])
+                            {
+                                case 1://悄悄关注
+                                case 2://关注
+                                case 6://互关
+                                    return true;
 
-                            default:
-                                ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。(relation:{obj["data"]["be_relation"]["attribute"]})");
-                                return false;
+                                default:
+                                    ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。(relation:{obj["data"]["be_relation"]["attribute"]})");
+                                    return false;
+                            }
                         }
                     }
                 }
+                ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。");
+                return false;
             }
-            ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但未关注，结果无效。");
-            return false;
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -1087,6 +1128,8 @@ namespace BiliRaffle
                         }
                     }
                     i++;
+
+                    Thread.Sleep(500);
                 } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
 
                 ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个（次）uid评论");
@@ -1163,6 +1206,8 @@ namespace BiliRaffle
                         }
                     }
                     i++;
+
+                    Thread.Sleep(500);
                 }
                 ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个uid的{count}次转发");
             }
@@ -1196,7 +1241,7 @@ namespace BiliRaffle
                 string rid;
                 rid = reg.IsMatch(id) ? BV2AV(id) : id.ToLower().Replace("av", "");
 
-                if(string.IsNullOrEmpty(rid))
+                if (string.IsNullOrEmpty(rid))
                 {
                     ViewModel.Main.PushMsg($"视频{id}已被删除或无法访问！");
                     continue;
@@ -1246,6 +1291,8 @@ namespace BiliRaffle
                         }
                     }
                     pn++;
+
+                    Thread.Sleep(500);
                 } while (pn * 20 <= (count / 20 + 1) * 20);
 
                 ViewModel.Main.PushMsg($"视频{id}下共统计到{ucount}个（次）uid评论");
