@@ -425,7 +425,7 @@ namespace BiliRaffle
 
                                     if (IsRepliesInFloors)
                                     {
-                                        if (reply.rcount > 0 && reply.rcount <= 3)
+                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
                                         {
                                             foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
                                             {
@@ -530,7 +530,7 @@ namespace BiliRaffle
 
                                     if (IsRepliesInFloors)
                                     {
-                                        if (reply.rcount > 0 && reply.rcount <= 3)
+                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
                                         {
                                             foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
                                             {
@@ -938,7 +938,7 @@ namespace BiliRaffle
 
                                     if (IsRepliesInFloors)
                                     {
-                                        if (reply.rcount > 0 && reply.rcount <= 3)
+                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
                                         {
                                             foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
                                             {
@@ -1108,7 +1108,7 @@ namespace BiliRaffle
 
                                     if (IsRepliesInFloors)
                                     {
-                                        if (reply.rcount > 0 && reply.rcount <= 3)
+                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
                                         {
                                             foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
                                             {
@@ -1271,7 +1271,7 @@ namespace BiliRaffle
 
                                     if (IsRepliesInFloors)
                                     {
-                                        if (reply.rcount > 0 && reply.rcount <= 3)
+                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
                                         {
                                             foreach (V_Comment_Templete.Data.Reply j in reply.replies)
                                             {
