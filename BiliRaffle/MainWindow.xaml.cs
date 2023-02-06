@@ -3,6 +3,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -61,28 +62,31 @@ namespace BiliRaffle
             }
         }
 
-        private Match CheckUpdate()
+        private async Task<Match> CheckUpdate()
         {
-            Match result;
-            HttpWebRequest req = null;
-            HttpWebResponse rep = null;
-            try
+            return await Task.Run(() =>
             {
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+                Match result;
+                HttpWebRequest req = null;
+                HttpWebResponse rep = null;
+                try
+                {
+                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
-                req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
-                req.AllowAutoRedirect = false;
-                rep = (HttpWebResponse)req.GetResponse();
-                result = new Regex("\\d+\\.\\d+\\.\\d+\\.(\\d+)(|_\\S+)").Match(rep.Headers["Location"]);
-            }
-            finally
-            {
-                if (rep != null) rep.Close();
-                if (req != null) req.Abort();
-            }
+                    req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
+                    req.AllowAutoRedirect = false;
+                    rep = (HttpWebResponse)req.GetResponse();
+                    result = new Regex("\\d+\\.\\d+\\.\\d+\\.(\\d+)(|_\\S+)").Match(rep.Headers["Location"]);
+                }
+                finally
+                {
+                    rep?.Close();
+                    req?.Abort();
+                }
 
-            return result;
+                return result;
+            });
         }
 
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
@@ -149,7 +153,7 @@ namespace BiliRaffle
             }
         }
 
-        private void window_Loaded(object sender, RoutedEventArgs e)
+        private async void window_Loaded(object sender, RoutedEventArgs e)
         {
             if (ViewModel.Main.AsPlugin)
             {
@@ -171,7 +175,7 @@ namespace BiliRaffle
             }
             else
             {
-                Match new_ver = CheckUpdate();
+                Match new_ver = await CheckUpdate();
                 if (new_ver != null && new_ver.Success && int.Parse(new_ver.Groups[1].Value) > Assembly.GetExecutingAssembly().GetName().Version.Revision) ViewModel.Main.PushMsg($"检查到新版本{new_ver.Value}，请前往【https://github.com/LeoChen98/BiliRaffle/releases/tag/{new_ver.Value}】下载。");
                 else ViewModel.Main.PushMsg("版本已是最新！");
             }
