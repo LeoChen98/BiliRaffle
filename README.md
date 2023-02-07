@@ -12,7 +12,7 @@ B站动态抽奖组件
 ## 支持与依赖
 框架|版本|依赖|备注
 ---|---|---|---
-.net framework|≥4.5|[Newtonsoft.Json](//github.com/JamesNK/Newtonsoft.Json) (≥ 12.0.3)<br/>[QRCoder](//github.com/codebude/QRCoder/) (≥ 1.3.6)|（无）
+.net framework|≥4.8|[Newtonsoft.Json](//github.com/JamesNK/Newtonsoft.Json) (≥ 13.0.2)<br/>[QRCoder](//github.com/codebude/QRCoder/) (≥ 1.4.3)|（无）
 
 ## 获取与使用
 从[下载地址](//github.com/LeoChen98/BiliRaffle/releases/latest)下载压缩包，全部解压后运行`BiliRaffle.exe`即可。
