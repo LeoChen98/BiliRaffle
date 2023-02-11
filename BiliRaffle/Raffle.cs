@@ -409,7 +409,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集音频au{rid}下的评论");
                 do
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/v2/reply?jsonp=json&pn={i}&type=14&oid={rid}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=14&oid={rid}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (!string.IsNullOrEmpty(str))
                     {
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
@@ -496,7 +496,7 @@ namespace BiliRaffle
         /// <returns>av</returns>
         private static string BV2AV(string id)
         {
-            return new Regex("\"aid\":(\\d+)").Match(Http.GetBody($"https://121.11.192.176/x/web-interface/view?bvid={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } })).Groups[1].Value;
+            return new Regex("\"aid\":(\\d+)").Match(Http.GetBody($"https://api.bilibili.com/x/web-interface/view?bvid={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } })).Groups[1].Value;
         }
 
         /// <summary>
@@ -514,7 +514,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集专栏cv{rid}下的评论");
                 do
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/v2/reply?jsonp=json&pn={i}&type=12&oid={rid}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=12&oid={rid}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (!string.IsNullOrEmpty(str))
                     {
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
@@ -662,7 +662,7 @@ namespace BiliRaffle
             Regex reg_count = new Regex("\"count\":(\\d+)");
             do
             {
-                string str = Http.GetBody($"https://121.11.192.176/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=14&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                 if (!string.IsNullOrEmpty(str))
                 {
@@ -698,7 +698,7 @@ namespace BiliRaffle
             Regex reg_count = new Regex("\"count\":(\\d+)");
             do
             {
-                string str = Http.GetBody($"https://121.11.192.176/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=12&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                 if (!string.IsNullOrEmpty(str))
                 {
@@ -733,7 +733,7 @@ namespace BiliRaffle
             Regex reg_count = new Regex("\"count\":(\\d+)");
             do
             {
-                string str = Http.GetBody($"https://121.11.192.176/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=11&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                 if (!string.IsNullOrEmpty(str))
                 {
@@ -762,7 +762,7 @@ namespace BiliRaffle
         /// <param name="oid">oid</param>
         private static string Get_T_Id(string oid)
         {
-            string pre_str = Http.GetBody($"https://121.11.192.176/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+            string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
             if (string.IsNullOrEmpty(pre_str)) return "";
             JObject o = JObject.Parse(pre_str);
 
@@ -773,7 +773,7 @@ namespace BiliRaffle
                     return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
 
                 case 500205:
-                    string pre_str_old = Http.GetBody($"https://121.11.192.176/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                    string pre_str_old = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                     {
                         JObject oo = JObject.Parse(pre_str_old);
                         if (oo["data"]["card"] != null)
@@ -802,7 +802,7 @@ namespace BiliRaffle
             Regex reg_count = new Regex("\"count\":(\\d+)");
             do
             {
-                string str = Http.GetBody($"https://121.11.192.176/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn=1&type=17&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                 if (!string.IsNullOrEmpty(str))
                 {
@@ -838,7 +838,7 @@ namespace BiliRaffle
             Regex reg_count = new Regex("\"count\":(\\d+)");
             do
             {
-                string str = Http.GetBody($"https://121.11.192.176/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/reply?pn={pn}&type=1&oid={rid}&root={rpid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                 if (!string.IsNullOrEmpty(str))
                 {
@@ -921,7 +921,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集画簿{id}下的评论");
                 do
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/v2/reply?jsonp=json&pn={i}&type=11&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=11&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (!string.IsNullOrEmpty(str))
                     {
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
@@ -989,7 +989,7 @@ namespace BiliRaffle
             {
                 if (!string.IsNullOrEmpty(Cookies))
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/space/acc/relation?mid={uid}", GetCookies(Cookies), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/relation?mid={uid}", GetCookies(Cookies), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (!string.IsNullOrEmpty(str))
                     {
                         JObject obj = JObject.Parse(str);
@@ -1028,7 +1028,7 @@ namespace BiliRaffle
         {
             int raffle_count = 0;
             Regex reg = new Regex("抽奖");
-            string str = Http.GetBody($"https://121.11.192.176/dynamic_svr/v1/dynamic_svr/space_history?visitor_uid=0&host_uid={uid}&offset_dynamic_id=0", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+            string str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?visitor_uid=0&host_uid={uid}&offset_dynamic_id=0", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
                 JObject obj = JObject.Parse(str);
@@ -1065,7 +1065,7 @@ namespace BiliRaffle
             foreach (var id in ids)
             {
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
-                string pre_str = Http.GetBody($"https://121.11.192.176/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                 if (string.IsNullOrEmpty(pre_str)) return;
                 JObject o = JObject.Parse(pre_str);
                 if ((int)o["code"] != 0) return;
@@ -1091,7 +1091,7 @@ namespace BiliRaffle
                 int i = 1, ucount = 0;
                 do
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/v2/reply?jsonp=json&pn={i}&type=17&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=17&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (!string.IsNullOrEmpty(str))
                     {
                         obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
@@ -1183,7 +1183,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的转发");
                 while (Data.has_more == 1)
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                     Debug.WriteLine(str);
                     if (!string.IsNullOrEmpty(str))
                     {
@@ -1250,7 +1250,7 @@ namespace BiliRaffle
                 Regex reg_count = new Regex("\"count\":(\\d+)");
                 do
                 {
-                    string str = Http.GetBody($"https://121.11.192.176/x/v2/reply?pn={pn}&type=1&oid={rid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?pn={pn}&type=1&oid={rid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
 
                     if (!string.IsNullOrEmpty(str))
                     {
