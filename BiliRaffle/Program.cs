@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.Management;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -127,6 +128,9 @@ namespace BiliRaffle
                     }
                 }
             }
+
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
             if (!ViewModel.Main.AsPlugin) User_Statistics();
             app.Run(new MainWindow());

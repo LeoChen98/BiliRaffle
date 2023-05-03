@@ -71,9 +71,6 @@ namespace BiliRaffle
                 HttpWebResponse rep = null;
                 try
                 {
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-
                     req = (HttpWebRequest)WebRequest.Create("https://github.com/LeoChen98/BiliRaffle/releases/latest");
                     req.AllowAutoRedirect = false;
                     rep = (HttpWebResponse)req.GetResponse();
@@ -125,7 +122,7 @@ namespace BiliRaffle
                 return;
             }
 
-            Regex reg = new Regex("(^|http[s]://)(((t.|h.)bilibili.com/\\d+)|((|www.)bilibili.com/(read/(cv|CV)\\d+|video/(av|AV)\\d+|video/BV[0-9A-Za-z]{10}|audio/(au|AU)\\d+)))");
+            Regex reg = new Regex("(^|http[s]://)(((t.|h.)bilibili.com/\\d+)|((|www.)bilibili.com/(read/(cv|CV)\\d+|video/(av|AV)\\d+|video/BV[0-9A-Za-z]{10}|audio/(au|AU)\\d+|opus/(\\d+))))");
             if (reg.IsMatch(textBox.Text))
             {
                 textBox.BorderBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x81, 0x81, 0x81));
@@ -139,7 +136,7 @@ namespace BiliRaffle
                 ViewModel.Main.IsCommentEnabled = true;
             }
 
-            Regex regt = new Regex("(^|http[s]://)t.bilibili.com/\\d+");
+            Regex regt = new Regex("((^|http[s]://)t.bilibili.com/\\d+|(|www.)bilibili.com/(opus/(\\d+)))");
             if (regt.IsMatch(textBox.Text))
             {
                 CB_Condition_Repose.IsEnabled = true;

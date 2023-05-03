@@ -4,7 +4,10 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +22,17 @@ namespace BiliRaffle
         #region Private Fields
 
         private static readonly object LOCK_ADDUID = new object();
+
+        /// <summary>
+        /// 抽奖动态判断正则组
+        /// </summary>
+        private static readonly Regex[] RaffleRegexGroups = { new("抽奖"), new("随机选.*?送") };
+
+        /// <summary>
+        /// Oid正则
+        /// </summary>
+        private static readonly Regex reg_Oid = new Regex(@"""rid_str"":""(\d+)""");
+
         private static readonly string REPO = "LeoChen98/BiliRaffle";
         private static string _Cookies;
         private static List<string> uids;
@@ -84,6 +98,7 @@ namespace BiliRaffle
                 List<string> V_ids = new List<string>();
                 List<string> C_ids = new List<string>();
                 List<string> A_ids = new List<string>();
+                List<string> O_ids = new List<string>();
 
                 foreach (var urlRaw in urls)
                 {
@@ -118,8 +133,13 @@ namespace BiliRaffle
                                     break;
 
                                 case "audio":
-                                    if (A_ids.Count == 0) flag += 13;
+                                    if (A_ids.Count == 0) flag += 16;
                                     A_ids.Add(tmp[4]);
+                                    break;
+
+                                case "opus":
+                                    if (O_ids.Count == 0) flag += 32;
+                                    O_ids.Add(tmp[4]);
                                     break;
 
                                 default:
@@ -136,6 +156,7 @@ namespace BiliRaffle
                 switch (flag)
                 {
                     case 1:
+                    case 32:
                         if (IsReposeEnabled && IsCommentEnabled)
                             ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
                         else if (IsReposeEnabled)
@@ -156,7 +177,7 @@ namespace BiliRaffle
                         ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case 13:
+                    case 16:
                         ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
@@ -167,6 +188,7 @@ namespace BiliRaffle
                         if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
                         if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
                         if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
+                        if (O_ids.Count > 0) str += $"综合动态：{string.Join(",", O_ids)}\r\n";
                         ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
                 }
@@ -179,6 +201,8 @@ namespace BiliRaffle
                 V_Raffle(V_ids.ToArray(), OneChance, IsRepliesInFloors);
                 C_Raffle(C_ids.ToArray(), OneChance, IsRepliesInFloors);
                 A_Raffle(A_ids.ToArray(), OneChance, IsRepliesInFloors);
+                O_Raffle_r(O_ids.ToArray(), OneChance);
+                O_Raffle_c(O_ids.ToArray(), OneChance, IsRepliesInFloors);
 
                 string[] rs = DoRaffle(uids.ToArray(), num, CheckFollow, Filter, FilterCondition);
                 ViewModel.Main.PushMsg("---------中奖名单---------");
@@ -231,6 +255,7 @@ namespace BiliRaffle
                 List<string> V_ids = new List<string>();
                 List<string> C_ids = new List<string>();
                 List<string> A_ids = new List<string>();
+                List<string> O_ids = new List<string>();
 
                 foreach (var urlRaw in urls)
                 {
@@ -265,8 +290,13 @@ namespace BiliRaffle
                                     break;
 
                                 case "audio":
-                                    if (A_ids.Count == 0) flag += 13;
+                                    if (A_ids.Count == 0) flag += 16;
                                     A_ids.Add(tmp[4]);
+                                    break;
+
+                                case "opus":
+                                    if (O_ids.Count == 0) flag += 32;
+                                    O_ids.Add(tmp[4]);
                                     break;
 
                                 default:
@@ -283,6 +313,7 @@ namespace BiliRaffle
                 switch (flag)
                 {
                     case 1:
+                    case 32:
                         if (IsReposeEnabled && IsCommentEnabled)
                             ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", T_ids)}\r\n抽奖类型：动态转发/评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}");
                         else if (IsReposeEnabled)
@@ -303,7 +334,7 @@ namespace BiliRaffle
                         ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", C_ids)}\r\n抽奖类型：专栏评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
-                    case 13:
+                    case 16:
                         ViewModel.Main.PushMsg($"抽奖地址：{string.Join(",", A_ids)}\r\n抽奖类型：音频评论抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
 
@@ -314,6 +345,7 @@ namespace BiliRaffle
                         if (V_ids.Count > 0) str += $"视频：{string.Join(",", V_ids)}\r\n";
                         if (C_ids.Count > 0) str += $"专栏：{string.Join(",", C_ids)}\r\n";
                         if (A_ids.Count > 0) str += $"音频：{string.Join(",", A_ids)}\r\n";
+                        if (O_ids.Count > 0) str += $"综合动态：{string.Join(",", O_ids)}\r\n";
                         ViewModel.Main.PushMsg($"抽奖地址：\r\n{str}抽奖类型：综合抽奖\r\n中奖人数：{num}\r\n不统计重复：{OneChance}\r\n需要关注：{CheckFollow}\r\n过滤抽奖号：{Filter},阈值：{FilterCondition}\r\n楼中楼：{IsRepliesInFloors}");
                         break;
                 }
@@ -323,6 +355,8 @@ namespace BiliRaffle
                 List<Task> tasks = new List<Task>();
                 if (IsReposeEnabled && T_ids.Count > 0)
                     tasks.Add(T_Raffle_rAsync(T_ids.ToArray(), OneChance));
+                if (IsReposeEnabled && O_ids.Count > 0)
+                    tasks.Add(O_Raffle_rAsync(O_ids.ToArray(), OneChance));
 
                 if (IsCommentEnabled)
                 {
@@ -336,6 +370,8 @@ namespace BiliRaffle
                         tasks.Add(C_RaffleAsync(C_ids.ToArray(), OneChance, IsRepliesInFloors));
                     if (A_ids.Count > 0)
                         tasks.Add(A_RaffleAsync(A_ids.ToArray(), OneChance, IsRepliesInFloors));
+                    if(O_ids.Count > 0)
+                        tasks.Add(O_Raffle_cAsync(O_ids.ToArray(), OneChance, IsRepliesInFloors));
                 }
 
                 Task.WaitAll(tasks.ToArray());
@@ -362,9 +398,9 @@ namespace BiliRaffle
                 int count = 0;
                 foreach (Exception e in aex.InnerExceptions)
                 {
-                    if(e.GetType() != typeof(WebException))
+                    if (e.GetType() != typeof(WebException))
                     {
-                        ReportableError:
+                    ReportableError:
                         aex_detail += $"  * {e?.GetType()}发生在{e?.TargetSite}中\r\n" +
                         $"    * 信息：{e?.Message}\r\n" +
                         $"    * 堆栈：{e?.StackTrace}\r\n" +
@@ -378,8 +414,6 @@ namespace BiliRaffle
                         else
                             System.Windows.Forms.MessageBox.Show($"网络错误！请检查网络连接。\r\n详细信息：\r\n{e.Message}");
                     }
-
-                    
                 }
 
                 Github.Send(REPO, new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors, aex_detail }));
@@ -604,7 +638,7 @@ namespace BiliRaffle
                 duid.Remove(uid);
                 if (!rs.Contains(uid))
                 {
-                    if (!Filter || !IsRaffleId(uid, FilterCondition))
+                    if (!Filter || !IsRaffleId_new(uid, FilterCondition))
                     {
                         if (CheckFollow)
                         {
@@ -757,6 +791,31 @@ namespace BiliRaffle
         }
 
         /// <summary>
+        /// 获取Oid
+        /// </summary>
+        /// <param name="url">opus地址</param>
+        /// <returns>Oid</returns>
+        private static string Get_O_Id(string url)
+        {
+            string str = "";
+            HttpWebRequest httpWebRequest = null;
+            HttpWebResponse httpWebResponse = null;
+            try
+            {
+                httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using StreamReader streamReader = new StreamReader(new GZipStream(httpWebResponse.GetResponseStream(),CompressionMode.Decompress),Encoding.UTF8);
+                str = streamReader.ReadToEnd();
+            }
+            finally
+            {
+                httpWebResponse?.Close();
+                httpWebRequest?.Abort();
+            }
+            return reg_Oid.Match(str).Groups[1].Value.ToString();
+        }
+
+        /// <summary>
         /// 获取真实动态id
         /// </summary>
         /// <param name="oid">oid</param>
@@ -786,7 +845,6 @@ namespace BiliRaffle
                     ViewModel.Main.PushMsg($"动态{oid}无效！");
                     return "";
             }
-
         }
 
         /// <summary>
@@ -1019,6 +1077,27 @@ namespace BiliRaffle
         }
 
         /// <summary>
+        /// 检查动态是否为抽奖转发
+        /// </summary>
+        /// <param name="item">动态JToken</param>
+        /// <returns>是否</returns>
+        private static bool IsRaffleDynamic(JToken item)
+        {
+            string text = item["orig"]["modules"]["module_dynamic"]["desc"]["text"].ToString();
+
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            foreach (Regex regex in RaffleRegexGroups)
+            {
+                if (regex.IsMatch(text))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 检查是否抽奖号
         /// </summary>
         /// <param name="uid">账号uid</param>
@@ -1053,6 +1132,158 @@ namespace BiliRaffle
                 return true;
             }
             else return false;
+        }
+
+        /// <summary>
+        /// 检查是否抽奖号
+        /// </summary>
+        /// <param name="uid">账号uid</param>
+        /// <param name="condition">抽奖号阈值</param>
+        /// <returns>是否</returns>
+        private static bool IsRaffleId_new(string uid, int condition)
+        {
+            int raffle_count = 0;
+            Regex reg = new Regex("抽奖");
+            string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid={uid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+            if (!string.IsNullOrEmpty(str))
+            {
+                JObject obj = JObject.Parse(str);
+                if ((int)obj["code"] == 0)
+                {
+                    foreach (JToken item in obj["data"]["items"])
+                    {
+                        if (item["type"].ToString() == "DYNAMIC_TYPE_FORWARD"
+                            && IsRaffleDynamic(item))
+                        {
+                            raffle_count++;
+                        }
+                    }
+                }
+            }
+
+            if (raffle_count > condition)
+            {
+                ViewModel.Main.PushMsg($"抽到【{GetUName(uid)}（uid:{uid}）】中奖，但判定为抽奖号，结果无效。（指数：{raffle_count}/{condition}）");
+                return true;
+            }
+            else return false;
+        }
+
+        /// <summary>
+        /// 综合动态评论抽奖
+        /// </summary>
+        /// <param name="ids">oid</param>
+        /// <param name="oneChance">只有一次机会</param>
+        /// <param name="isRepliesInFloors">楼中楼</param>
+        private static void O_Raffle_c(string[] ids, bool oneChance, bool isRepliesInFloors)
+        {
+            int ucount = 0;
+            foreach (string id in ids)
+            {
+                string oid = Get_O_Id($"https://www.bilibili.com/opus/{id}");
+                int next = 0;
+                bool is_end = false;
+                while (!is_end)
+                {
+                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/main?mode=2&next={next}&oid={oid}&plat=1&type=11", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    if (string.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+                    JObject obj = JObject.Parse(str);
+                    if ((int)obj["code"] != 0)
+                    {
+                        continue;
+                    }
+
+                    next = (int)obj["data"]["cursor"]["next"];
+                    is_end = (bool)obj["data"]["cursor"]["is_end"];
+
+                    foreach (JToken token in obj["data"]["replies"])
+                    {
+                        ucount += AddUid(token["member"]["mid"].ToString(),oneChance);
+
+                        if (isRepliesInFloors)
+                        {
+                            foreach (JToken sub_token in token["replies"])
+                            {
+                                ucount += AddUid(sub_token["member"]["mid"].ToString(), oneChance);
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(500);
+                }
+
+                ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid评论");
+            }
+        }
+
+        /// <summary>
+        /// 综合动态评论抽奖（异步）
+        /// </summary>
+        /// <param name="ids">oid</param>
+        /// <param name="oneChance">只有一次机会</param>
+        /// <param name="isRepliesInFloors">楼中楼</param>
+        private static Task O_Raffle_cAsync(string[] ids, bool oneChance, bool isRepliesInFloors)
+        {
+            return Task.Run(() =>
+            {
+                O_Raffle_c(ids,oneChance,isRepliesInFloors);
+            });
+        }
+
+        /// <summary>
+        /// 综合动态转发抽奖
+        /// </summary>
+        /// <param name="ids">oid</param>
+        /// <param name="oneChance">只有一次机会</param>
+        private static void O_Raffle_r(string[] ids, bool oneChance)
+        {
+            int ucount = 0;
+            foreach (string id in ids)
+            {
+                bool has_more = true;
+                string offset = "";
+                while (has_more)
+                {
+                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/forward?id={id}&offset={offset}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    if (string.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+                    JObject obj = JObject.Parse(str);
+                    if ((int)obj["code"] != 0)
+                    {
+                        continue;
+                    }
+
+                    offset = obj["data"]["offset"].ToString() ;
+                    has_more = (bool)obj["data"]["has_more"];
+
+                    foreach (JToken token in obj["data"]["items"])
+                    {
+                        ucount += AddUid(token["user"]["mid"].ToString(), oneChance);
+                    }
+
+                    Thread.Sleep(500);
+                }
+
+                ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid转发");
+            }
+        }
+
+        /// <summary>
+        /// 综合动态转发抽奖（异步）
+        /// </summary>
+        /// <param name="ids">oid</param>
+        /// <param name="oneChance">只有一次机会</param>
+        private static Task O_Raffle_rAsync(string[] ids, bool oneChance)
+        {
+            return Task.Run(() =>
+            {
+                O_Raffle_r(ids, oneChance);
+            });
         }
 
         /// <summary>

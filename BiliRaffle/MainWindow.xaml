@@ -34,13 +34,14 @@
             <Rectangle x:Name="rectangle" Fill="#FFD4D4D4" Height="1" Margin="0,38,0,0" VerticalAlignment="Top" />
         </Grid>
         <TextBlock x:Name="Lbl_Url" Text="抽奖地址：" HorizontalAlignment="Left" Margin="30,21,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" />
-        <TextBlock x:Name="TBk_Url_Message" Margin="110,25,320,295" Grid.Row="1" Foreground="#FF8F8F8F">
+        <TextBlock x:Name="TBk_Url_Message" Margin="110,25,320,280" Grid.Row="1" Foreground="#FF8F8F8F">
             输入支持的url：(多抽一以回车分隔)<LineBreak />
             http[s]://t.bilibili.com/<LineBreak />
             http[s]://h.bilibili.com/<LineBreak />
             http[s]://www.bilibili.com/video/<LineBreak />
             http[s]://www.bilibili.com/read/<LineBreak />
             http[s]://www.bilibili.com/audio/<LineBreak />
+            http[s]://www.bilibili.com/opus/<LineBreak />
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Style.Triggers>
@@ -54,10 +55,10 @@
                 </Style>
             </TextBlock.Style>
         </TextBlock>
-        <TextBox x:Name="TB_Url" Margin="105,20,315,0" Height="101" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.Url}" TextChanged="TB_Url_TextChanged" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Background="{x:Null}" Padding="4" BorderBrush="#FF818181" />
-        <TextBlock x:Name="Lbl_Num" Text="中奖人数：" HorizontalAlignment="Left" Margin="30,134,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
+        <TextBox x:Name="TB_Url" Margin="105,20,315,0" Height="116" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.Url}" TextChanged="TB_Url_TextChanged" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Background="{x:Null}" Padding="4" BorderBrush="#FF818181" />
+        <TextBlock x:Name="Lbl_Num" Text="中奖人数：" HorizontalAlignment="Left" Margin="30,158,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
         <TextBox x:Name="TB_Msg" Margin="480,20,30,20" FontSize="14" Grid.Row="1" Text="{Binding Main.Msg}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Background="{x:Null}" IsReadOnly="True" TextWrapping="Wrap" />
-        <Button x:Name="Btn_Num_1" Content="1" HorizontalAlignment="Left" Margin="105,126,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
+        <Button x:Name="Btn_Num_1" Content="1" HorizontalAlignment="Left" Margin="105,150,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Background" Value="#02FFFFFF" />
@@ -82,7 +83,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Btn_Num_3" Content="3" HorizontalAlignment="Left" Margin="145,126,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
+        <Button x:Name="Btn_Num_3" Content="3" HorizontalAlignment="Left" Margin="145,150,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Background" Value="#02FFFFFF" />
@@ -107,7 +108,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Btn_Num_5" Content="5" HorizontalAlignment="Left" Margin="185,126,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
+        <Button x:Name="Btn_Num_5" Content="5" HorizontalAlignment="Left" Margin="185,150,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}" CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Background" Value="#02FFFFFF" />
@@ -132,7 +133,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Btn_Num_10" Content="10" HorizontalAlignment="Left" Margin="225,126,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}"  CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
+        <Button x:Name="Btn_Num_10" Content="10" HorizontalAlignment="Left" Margin="225,150,0,0" Grid.Row="1" VerticalAlignment="Top" Width="35" Height="35" Command="{Binding Main.ChangeNum}"  CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Background" Value="#02FFFFFF" />
@@ -157,7 +158,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <TextBlock x:Name="TBk_Num_x_Msg" HorizontalAlignment="Left" Height="25" Margin="265,131,0,0" Grid.Row="1" TextWrapping="Wrap" Text="其他" VerticalAlignment="Top" Width="55" Foreground="#FF8F8F8F" TextAlignment="Center" Padding="0,5,0,0">
+        <TextBlock x:Name="TBk_Num_x_Msg" HorizontalAlignment="Left" Height="25" Margin="265,155,0,0" Grid.Row="1" TextWrapping="Wrap" Text="其他" VerticalAlignment="Top" Width="55" Foreground="#FF8F8F8F" TextAlignment="Center" Padding="0,5,0,0">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Style.Triggers>
@@ -171,7 +172,7 @@
                 </Style>
             </TextBlock.Style>
         </TextBlock>
-        <TextBox x:Name="TB_Num_x" Margin="265,126,420,250" Grid.Row="1" Text="{Binding Main.Num, Mode=OneWayToSource,UpdateSourceTrigger=PropertyChanged,FallbackValue=-1}" PreviewTextInput="TB_Num_x_PreviewTextInput" GotFocus="TB_Num_x_GotFocus" LostFocus="TB_Num_x_LostFocus">
+        <TextBox x:Name="TB_Num_x" Margin="265,150,420,226" Grid.Row="1" Text="{Binding Main.Num, Mode=OneWayToSource,UpdateSourceTrigger=PropertyChanged,FallbackValue=-1}" PreviewTextInput="TB_Num_x_PreviewTextInput" GotFocus="TB_Num_x_GotFocus" LostFocus="TB_Num_x_LostFocus">
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="#02FFFFFF" />
@@ -212,8 +213,8 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TextBlock x:Name="Lbl_Condition" Text="抽奖条件：" HorizontalAlignment="Left" Margin="30,176,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
-        <CheckBox x:Name="CB_Condition_Repose" Grid.Row="1" Margin="105,168,560,208" IsChecked="{Binding Main.IsReposeEnabled}" Content="转发">
+        <TextBlock x:Name="Lbl_Condition" Text="抽奖条件：" HorizontalAlignment="Left" Margin="30,201,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
+        <CheckBox x:Name="CB_Condition_Repose" Grid.Row="1" Margin="105,192,560,184" IsChecked="{Binding Main.IsReposeEnabled}" Content="转发">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -248,7 +249,7 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <CheckBox x:Name="CB_Condition_Comment" Grid.Row="1" Margin="185,168,480,208" IsChecked="{Binding Main.IsCommentEnabled}" Content="评论" Click="CB_Condition_Comment_Click">
+        <CheckBox x:Name="CB_Condition_Comment" Grid.Row="1" Margin="185,192,480,184" IsChecked="{Binding Main.IsCommentEnabled}" Content="评论" Click="CB_Condition_Comment_Click">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -283,8 +284,8 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_RepliesInFloors" HorizontalAlignment="Left" Margin="265,174,0,0" Grid.Row="1" Height="28" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="70" Padding="2,2,0,0" FontSize="12" Text="评论楼中楼：" />
-        <CheckBox x:Name="CB_RepliesInFloors" Grid.Row="1" Margin="340,168,325,208" IsChecked="{Binding Main.IsRepliesInFloors}" IsEnabled="{Binding Main.IsCommentEnabled}">
+        <TextBlock x:Name="Lbl_RepliesInFloors" HorizontalAlignment="Left" Margin="265,199,0,0" Grid.Row="1" Height="28" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="70" Padding="2,2,0,0" FontSize="12" Text="评论楼中楼：" />
+        <CheckBox x:Name="CB_RepliesInFloors" Grid.Row="1" Margin="340,192,325,184" IsChecked="{Binding Main.IsRepliesInFloors}" IsEnabled="{Binding Main.IsCommentEnabled}">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -322,10 +323,10 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_Fans" HorizontalAlignment="Left" Margin="221,220,0,0" Grid.Row="1" Height="35" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="114" Padding="2,2,0,0">
+        <TextBlock x:Name="Lbl_Fans" HorizontalAlignment="Left" Margin="221,244,0,0" Grid.Row="1" Height="35" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="114" Padding="2,2,0,0">
             需要关注(需要登录)：
         </TextBlock>
-        <CheckBox x:Name="CB_NeedFans" Grid.Row="1" Margin="340,212,325,164" IsChecked="{Binding Main.CheckFollow}">
+        <CheckBox x:Name="CB_NeedFans" Grid.Row="1" Margin="340,236,325,140" IsChecked="{Binding Main.CheckFollow}">
             <CheckBox.Style>
                 <Style TargetType="CheckBox">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -351,8 +352,8 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_OneChance" Text="重复不计：" HorizontalAlignment="Left" Margin="30,220,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
-        <CheckBox x:Name="CB_OneChance" Grid.Row="1" Margin="105,212,560,164" IsChecked="{Binding Main.IsOneChance}">
+        <TextBlock x:Name="Lbl_OneChance" Text="重复不计：" HorizontalAlignment="Left" Margin="30,244,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
+        <CheckBox x:Name="CB_OneChance" Grid.Row="1" Margin="105,236,560,140" IsChecked="{Binding Main.IsOneChance}">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -378,8 +379,8 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_Filter" Text="过滤抽奖号：" HorizontalAlignment="Left" Margin="30,266,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
-        <CheckBox x:Name="CB_Filter" Grid.Row="1" Margin="105,258,560,118" IsChecked="{Binding Main.Filter}">
+        <TextBlock x:Name="Lbl_Filter" Text="过滤抽奖号：" HorizontalAlignment="Left" Margin="30,290,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
+        <CheckBox x:Name="CB_Filter" Grid.Row="1" Margin="105,282,560,94" IsChecked="{Binding Main.Filter}">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -405,9 +406,9 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_Filter_Condition" Text="抽奖指数阈值（1~10）：" HorizontalAlignment="Left" Margin="200,266,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="135" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        <TextBox x:Name="TB_Filter_Condition" Margin="340,258,325,0" Height="35" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.FilterCondition}" VerticalScrollBarVisibility="Auto" Background="{x:Null}" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="#FF818181" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        <Button x:Name="Btn_Start" Content="开始抽奖" HorizontalAlignment="Left" Margin="145,331,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161" Height="35" Command="{Binding Main.Start}">
+        <TextBlock x:Name="Lbl_Filter_Condition" Text="抽奖指数阈值（1~10）：" HorizontalAlignment="Left" Margin="200,290,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" Width="135" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="TB_Filter_Condition" Margin="340,282,325,0" Height="35" VerticalAlignment="Top" Grid.Row="1" Text="{Binding Main.FilterCondition}" VerticalScrollBarVisibility="Auto" Background="{x:Null}" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="#FF818181" Visibility="{Binding Filter, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <Button x:Name="Btn_Start" Content="开始抽奖" HorizontalAlignment="Left" Margin="145,355,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161" Height="35" Command="{Binding Main.Start}">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Background" Value="#02FFFFFF" />
