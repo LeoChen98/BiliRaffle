@@ -370,7 +370,7 @@ namespace BiliRaffle
                         tasks.Add(C_RaffleAsync(C_ids.ToArray(), OneChance, IsRepliesInFloors));
                     if (A_ids.Count > 0)
                         tasks.Add(A_RaffleAsync(A_ids.ToArray(), OneChance, IsRepliesInFloors));
-                    if(O_ids.Count > 0)
+                    if (O_ids.Count > 0)
                         tasks.Add(O_Raffle_cAsync(O_ids.ToArray(), OneChance, IsRepliesInFloors));
                 }
 
@@ -804,7 +804,7 @@ namespace BiliRaffle
             {
                 httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
                 httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                using StreamReader streamReader = new StreamReader(new GZipStream(httpWebResponse.GetResponseStream(),CompressionMode.Decompress),Encoding.UTF8);
+                using StreamReader streamReader = new StreamReader(new GZipStream(httpWebResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8);
                 str = streamReader.ReadToEnd();
             }
             finally
@@ -956,6 +956,10 @@ namespace BiliRaffle
             string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/info?mid={uid}", null, "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.78", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
+                if (str.Contains("\"code\":0"))
+                {
+                    str = str.Replace("{\"code\":-509,\"message\":\"请求过于频繁，请稍后再试\",\"ttl\":1}", "");
+                }
                 JObject obj = JObject.Parse(str);
                 if ((int)obj["code"] == 0)
                 {
@@ -1083,7 +1087,18 @@ namespace BiliRaffle
         /// <returns>是否</returns>
         private static bool IsRaffleDynamic(JToken item)
         {
-            string text = item["orig"]["modules"]["module_dynamic"]["desc"]["text"].ToString();
+            string text = null;
+
+            switch (item["orig"]["type"].ToString())
+            {
+                case "DYNAMIC_TYPE_AV":
+                    text = item["orig"]["modules"]["module_dynamic"]["major"]["archive"]["desc"].ToString();
+                    break;
+
+                default:
+                    text = item["orig"]["modules"]["module_dynamic"]["desc"]["text"].ToString();
+                    break;
+            }
 
             if (string.IsNullOrEmpty(text))
                 return false;
@@ -1201,7 +1216,7 @@ namespace BiliRaffle
 
                     foreach (JToken token in obj["data"]["replies"])
                     {
-                        ucount += AddUid(token["member"]["mid"].ToString(),oneChance);
+                        ucount += AddUid(token["member"]["mid"].ToString(), oneChance);
 
                         if (isRepliesInFloors)
                         {
@@ -1229,7 +1244,7 @@ namespace BiliRaffle
         {
             return Task.Run(() =>
             {
-                O_Raffle_c(ids,oneChance,isRepliesInFloors);
+                O_Raffle_c(ids, oneChance, isRepliesInFloors);
             });
         }
 
@@ -1258,7 +1273,7 @@ namespace BiliRaffle
                         continue;
                     }
 
-                    offset = obj["data"]["offset"].ToString() ;
+                    offset = obj["data"]["offset"].ToString();
                     has_more = (bool)obj["data"]["has_more"];
 
                     foreach (JToken token in obj["data"]["items"])
