@@ -38,6 +38,7 @@ namespace BiliRaffle
 
         private static readonly string REPO = "LeoChen98/BiliRaffle";
         private static string _Cookies;
+        private static string _UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
         private static List<string> uids;
         
         private static readonly int[] MixinKeyEncTab =
@@ -878,6 +879,29 @@ namespace BiliRaffle
             }
             return reg_Oid.Match(str).Groups[1].Value.ToString();
         }
+        
+        private static string Get_O_Id_new(string id)
+        {
+            string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+            if (string.IsNullOrEmpty(str)) return "";
+            JObject o = JObject.Parse(str);
+
+            if ((int)o["code"] == 0 && o["data"]["card"] != null)
+            {
+                return o["data"]["card"]["desc"]["rid"].ToString();
+            }
+
+            str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={id}", user_agent: _UserAgent);
+            if (string.IsNullOrEmpty(str)) return "";
+            o = JObject.Parse(str);
+            if ((int)o["code"] == 0 && o["data"]["item"] != null)
+            {
+                return o["data"]["item"]["basic"]["rid_str"].ToString();
+            }
+
+            ViewModel.Main.PushMsg($"动态{id}不存在！");
+            return "";
+        }
 
         /// <summary>
         /// 获取真实动态id
@@ -988,19 +1012,18 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="cookies">cookies文本</param>
         /// <returns>cookies实例</returns>
-        private static CookieCollection GetCookies(string cookies)
+        private static CookieCollection GetCookies(string cookies, string domain = "api.bilibili.com")
         {
             try
             {
                 CookieCollection public_cookie;
-                Uri target = new Uri("https://api.bilibili.com/x/relation/followers");
                 public_cookie = new CookieCollection();
                 cookies = cookies.Replace(",", "%2C");//转义“，”
                 string[] cookiestrs = Regex.Split(cookies, "; ");
                 foreach (string i in cookiestrs)
                 {
                     string[] cookie = Regex.Split(i, "=");
-                    public_cookie.Add(new Cookie(cookie[0], cookie[1]) { Domain = target.Host });
+                    public_cookie.Add(new Cookie(cookie[0], cookie[1]) { Domain = domain });
                 }
                 return public_cookie;
             }
@@ -1248,6 +1271,57 @@ namespace BiliRaffle
             else return false;
         }
 
+        private static int Dynamic_Raffle_Comment(string id, bool oneChance, bool isRepliesInFloors)
+        {
+            int ucount = 0;
+            string oid = Get_O_Id_new(id);
+            int next = 0;
+            bool is_end = false;
+            string offset = "";
+            while (!is_end)
+            {
+                var query = EncryptQueryWithWbiSign(new Dictionary<string, string>
+                {
+                    {"oid", oid},
+                    {"type", "11"},
+                    {"mode", "2"},
+                    {"next", next.ToString()},
+                    {"pagination_str", JsonConvert.SerializeObject(new Dictionary<string, string> { { "offset", offset } })}
+                });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/wbi/main?{query}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                if (string.IsNullOrEmpty(str))
+                {
+                    continue;
+                }
+                JObject obj = JObject.Parse(str);
+                if ((int)obj["code"] != 0)
+                {
+                    continue;
+                }
+
+                next = (int)obj["data"]["cursor"]["next"];
+                is_end = (bool)obj["data"]["cursor"]["is_end"];
+                offset = (string)obj["data"]["cursor"]["pagination_reply"]["next_offset"];
+
+                foreach (JToken token in obj["data"]["replies"])
+                {
+                    ucount += AddUid(token["member"]["mid"].ToString(), oneChance);
+
+                    if (isRepliesInFloors)
+                    {
+                        foreach (JToken sub_token in token["replies"])
+                        {
+                            ucount += AddUid(sub_token["member"]["mid"].ToString(), oneChance);
+                        }
+                    }
+                }
+
+                Thread.Sleep(500);
+            }
+
+            return ucount;
+        }
+        
         /// <summary>
         /// 综合动态评论抽奖
         /// </summary>
@@ -1256,44 +1330,9 @@ namespace BiliRaffle
         /// <param name="isRepliesInFloors">楼中楼</param>
         private static void O_Raffle_c(string[] ids, bool oneChance, bool isRepliesInFloors)
         {
-            int ucount = 0;
             foreach (string id in ids)
             {
-                string oid = Get_O_Id($"https://www.bilibili.com/opus/{id}");
-                int next = 0;
-                bool is_end = false;
-                while (!is_end)
-                {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/main?mode=2&next={next}&oid={oid}&plat=1&type=11", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
-                    if (string.IsNullOrEmpty(str))
-                    {
-                        continue;
-                    }
-                    JObject obj = JObject.Parse(str);
-                    if ((int)obj["code"] != 0)
-                    {
-                        continue;
-                    }
-
-                    next = (int)obj["data"]["cursor"]["next"];
-                    is_end = (bool)obj["data"]["cursor"]["is_end"];
-
-                    foreach (JToken token in obj["data"]["replies"])
-                    {
-                        ucount += AddUid(token["member"]["mid"].ToString(), oneChance);
-
-                        if (isRepliesInFloors)
-                        {
-                            foreach (JToken sub_token in token["replies"])
-                            {
-                                ucount += AddUid(sub_token["member"]["mid"].ToString(), oneChance);
-                            }
-                        }
-                    }
-
-                    Thread.Sleep(500);
-                }
-
+                int ucount = Dynamic_Raffle_Comment(id, oneChance, isRepliesInFloors);
                 ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid评论");
             }
         }
