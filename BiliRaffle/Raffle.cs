@@ -1423,8 +1423,8 @@ namespace BiliRaffle
                 if ((int)o["code"] != 0) return;
                 switch ((int)o["data"]["card"]["desc"]["type"])
                 {
-                    case 2: //画簿
-                        goto H_C;
+                    // case 2: //画簿
+                    //     goto H_C;
 
                     case 8: //视频
                         goto V_C;
