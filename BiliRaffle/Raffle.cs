@@ -909,30 +909,25 @@ namespace BiliRaffle
         /// <param name="oid">oid</param>
         private static string Get_T_Id(string oid)
         {
-            string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-            if (string.IsNullOrEmpty(pre_str)) return "";
-            JObject o = JObject.Parse(pre_str);
+            string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+            if (string.IsNullOrEmpty(str)) return "";
+            JObject o = JObject.Parse(str);
 
-            switch ((int)o["code"])
+            if ((int)o["code"] == 0 && o["data"]["card"] != null)
             {
-                case 0:
-
-                    return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
-
-                case 500205:
-                    string pre_str_old = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-                    {
-                        JObject oo = JObject.Parse(pre_str_old);
-                        if (oo["data"]["card"] != null)
-                            return oid;
-                    }
-                    ViewModel.Main.PushMsg($"动态{oid}不存在！");
-                    return "";
-
-                default:
-                    ViewModel.Main.PushMsg($"动态{oid}无效！");
-                    return "";
+                return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
             }
+
+            str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={oid}", user_agent: _UserAgent);
+            if (string.IsNullOrEmpty(str)) return "";
+            o = JObject.Parse(str);
+            if ((int)o["code"] == 0 && o["data"]["item"] != null)
+            {
+                return o["data"]["item"]["id_str"].ToString();
+            }
+
+            ViewModel.Main.PushMsg($"动态{oid}不存在！");
+            return "";
         }
 
         /// <summary>
@@ -1271,6 +1266,13 @@ namespace BiliRaffle
             else return false;
         }
 
+        /// <summary>
+        /// 动态评论抽奖（支持普通动态和综合动态）
+        /// </summary>
+        /// <param name="id">动态ID</param>
+        /// <param name="oneChance">只有一次机会</param>
+        /// <param name="isRepliesInFloors">楼中楼</param>
+        /// <returns></returns>
         private static int Dynamic_Raffle_Comment(string id, bool oneChance, bool isRepliesInFloors)
         {
             int ucount = 0;
@@ -1409,12 +1411,13 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void T_Raffle_c(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
             {
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
-                string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                 if (string.IsNullOrEmpty(pre_str)) return;
                 JObject o = JObject.Parse(pre_str);
                 if ((int)o["code"] != 0) return;
@@ -1436,50 +1439,7 @@ namespace BiliRaffle
                         break;
                 }
 
-                H_Reply_Data obj = new H_Reply_Data();
-                int i = 1, ucount = 0;
-                do
-                {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=17&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (i == 1) ViewModel.Main.PushMsg($"动态{id}共有{obj.data.page.count}条评论。开始统计uid...");
-
-                            if (obj.data.replies != null && obj.data.replies.Length != 0)
-                            {
-                                foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                                {
-                                    ucount += AddUid(reply.mid.ToString(), OneChance);
-
-                                    if (IsRepliesInFloors)
-                                    {
-                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
-                                        {
-                                            foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
-                                            {
-                                                ucount += AddUid(j.mid, OneChance);
-                                            }
-                                        }
-                                        else if (reply.rcount > 3)
-                                        {
-                                            foreach (string mid in Get_T_RepliesInFloors(id, reply.rpid))
-                                            {
-                                                ucount += AddUid(mid, OneChance);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    i++;
-
-                    Thread.Sleep(500);
-                } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
-
+                int ucount = Dynamic_Raffle_Comment(id, OneChance, IsRepliesInFloors);
                 ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个（次）uid评论");
                 return;
 
