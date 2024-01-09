@@ -440,6 +440,11 @@ namespace BiliRaffle
         #endregion Public Methods
 
         #region Private Methods
+        
+        /// <summary>
+        /// 获取WBI签名所需的img_key和sub_key
+        /// </summary>
+        /// <returns></returns>
         private static (string, string) GetWbiKeys()
         {
             if (string.IsNullOrEmpty(_imgKey) || string.IsNullOrEmpty(_subKey))
@@ -460,11 +465,23 @@ namespace BiliRaffle
             return (_imgKey, _subKey);
         }
         
+        /// <summary>
+        /// 对imgKey和subKey进行字符顺序打乱编码
+        /// </summary>
+        /// <param name="orig">原始字符串</param>
+        /// <returns></returns>
         private static string GetMixinKey(string orig)
         {
             return MixinKeyEncTab.Aggregate("", (s, i) => s + orig[i]).Substring(0, 32);
         }
         
+        /// <summary>
+        /// 对请求参数进行WBI签名
+        /// </summary>
+        /// <param name="parameters">请求参数</param>
+        /// <param name="imgKey"></param>
+        /// <param name="subKey"></param>
+        /// <returns>签名后的请求参数</returns>
         private static string EncryptQueryWithWbiSign(Dictionary<string, string> parameters, string imgKey = null, string subKey = null)
         {
             if (string.IsNullOrEmpty(imgKey) || string.IsNullOrEmpty(subKey))
@@ -498,6 +515,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">au</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void A_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -562,6 +580,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">au</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task A_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -603,6 +622,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">cv</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void C_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -667,6 +687,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">cv</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task C_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -739,6 +760,8 @@ namespace BiliRaffle
         /// <param name="uids">uid数组</param>
         /// <param name="num">中奖数量</param>
         /// <param name="CheckFollow">是否检查关注</param>
+        /// <param name="Filter">是否过滤抽奖号</param>
+        /// <param name="FilterCondition">抽奖号阈值</param>
         /// <returns>中奖uid</returns>
         private static Task<string[]> DoRaffleAsync(string[] uids, int num, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5)
         {
@@ -880,6 +903,11 @@ namespace BiliRaffle
             return reg_Oid.Match(str).Groups[1].Value.ToString();
         }
         
+        /// <summary>
+        /// 获取oid
+        /// </summary>
+        /// <param name="id">动态ID</param>
+        /// <returns>oid</returns>
         private static string Get_O_Id_new(string id)
         {
             string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
@@ -1006,6 +1034,7 @@ namespace BiliRaffle
         /// 获取cookies实例
         /// </summary>
         /// <param name="cookies">cookies文本</param>
+        /// <param name="domain">cookies所属的域</param>
         /// <returns>cookies实例</returns>
         private static CookieCollection GetCookies(string cookies, string domain = "api.bilibili.com")
         {
@@ -1056,6 +1085,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">相簿id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void H_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -1114,6 +1144,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">相簿id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task H_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -1470,6 +1501,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task T_Raffle_cAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -1524,8 +1556,7 @@ namespace BiliRaffle
         /// <summary>
         /// 动态抽奖(异步)
         /// </summary>
-        /// <param name="id">动态id(c_id)</param>
-        /// <param name="num">中奖人数</param>
+        /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
         private static Task T_Raffle_rAsync(string[] ids, bool OneChance = false)
         {
@@ -1539,6 +1570,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">视频id（含av/bv)</param>
         /// <param name="onechance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void V_Raffle(string[] ids, bool onechance = false, bool IsRepliesInFloors = true)
         {
             Regex reg = new Regex("BV[A-Za-z0-9]{10}");
@@ -1607,6 +1639,12 @@ namespace BiliRaffle
             }
         }
 
+        /// <summary>
+        /// 视频抽奖收集
+        /// </summary>
+        /// <param name="ids">视频id（含av/bv)</param>
+        /// <param name="onechance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task V_RaffleAsync(string[] ids, bool onechance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
