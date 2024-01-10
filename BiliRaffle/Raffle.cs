@@ -40,7 +40,7 @@ namespace BiliRaffle
         private static string _Cookies;
         private static string _UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
         private static List<string> uids;
-        
+
         private static readonly int[] MixinKeyEncTab =
         {
             46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39,
@@ -1383,7 +1383,7 @@ namespace BiliRaffle
                 O_Raffle_c(ids, oneChance, isRepliesInFloors);
             });
         }
-
+        
         /// <summary>
         /// 综合动态转发抽奖
         /// </summary>
@@ -1398,7 +1398,7 @@ namespace BiliRaffle
                 string offset = "";
                 while (has_more)
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/forward?id={id}&offset={offset}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/forward?id={id}&offset={offset}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (string.IsNullOrEmpty(str))
                     {
                         continue;
@@ -1417,9 +1417,52 @@ namespace BiliRaffle
                         ucount += AddUid(token["user"]["mid"].ToString(), oneChance);
                     }
 
-                    Thread.Sleep(500);
+                    Thread.Sleep(10000);
                 }
 
+                ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid转发");
+            }
+        }
+
+        private static void O_Raffle_r_new(string[] ids, bool oneChance)
+        {
+            foreach (string id in ids)
+            {
+                int ucount = 0;
+                bool has_more = true;
+                string offset = "";
+                while (has_more)
+                {
+                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/reaction?id={id}&offset={offset}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    if (string.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+                    JObject obj = JObject.Parse(str);
+                    if ((int)obj["code"] != 0)
+                    {
+                        break;
+                    }
+                    
+                    foreach (JToken token in obj["data"]["items"])
+                    {
+                        if (token["action"].ToString() == "转发了")
+                        {
+                            ucount += AddUid(token["mid"].ToString(), oneChance);
+                        }
+                    }
+                    
+                    offset = obj["data"]["offset"].ToString();
+                    has_more = (bool)obj["data"]["has_more"];
+
+                    JObject offsetObj = JObject.Parse(offset);
+                    if (offsetObj["repost"].ToString() == "-1") // 此时接口不再返回转发数据
+                    {
+                        break;
+                    }
+                    
+                    Thread.Sleep(500);
+                }
                 ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid转发");
             }
         }
@@ -1431,6 +1474,14 @@ namespace BiliRaffle
         /// <param name="oneChance">只有一次机会</param>
         private static Task O_Raffle_rAsync(string[] ids, bool oneChance)
         {
+            ViewModel.Main.PushMsg("请扫码登录以缩短转发列表获取时间。请注意，转发列表只能获取约500个最近转发的用户。");
+            if (Cookies != null)
+            {
+                return Task.Run(() =>
+                {
+                    O_Raffle_r_new(ids, oneChance);
+                });
+            }
             return Task.Run(() =>
             {
                 O_Raffle_r(ids, oneChance);
