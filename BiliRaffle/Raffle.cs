@@ -1575,7 +1575,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的转发");
                 while (Data.has_more == 1)
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", GetCookies(Cookies), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                     Debug.WriteLine(str);
                     if (!string.IsNullOrEmpty(str))
                     {
