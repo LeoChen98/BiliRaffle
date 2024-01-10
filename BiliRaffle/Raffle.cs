@@ -1081,7 +1081,11 @@ namespace BiliRaffle
         /// <returns></returns>
         private static string GetUName(string uid)
         {
-            string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/info?mid={uid}", null, "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.78", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+            var query = EncryptQueryWithWbiSign(new Dictionary<string, string>
+            {
+                {"mid", uid}
+            });
+            string str = Http.GetBody($"https://api.bilibili.com/x/space/wbi/acc/info?{query}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
                 if (str.Contains("\"code\":0"))
