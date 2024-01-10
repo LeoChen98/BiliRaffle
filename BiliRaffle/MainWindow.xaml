@@ -214,7 +214,7 @@
             </TextBox.Style>
         </TextBox>
         <TextBlock x:Name="Lbl_Condition" Text="抽奖条件：" HorizontalAlignment="Left" Margin="30,201,0,0" Grid.Row="1" FontSize="14" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
-        <CheckBox x:Name="CB_Condition_Repose" Grid.Row="1" Margin="105,192,560,184" IsChecked="{Binding Main.IsReposeEnabled}" Content="转发">
+        <CheckBox x:Name="CB_Condition_Repose" Grid.Row="1" Margin="105,192,560,184" IsChecked="{Binding Main.IsReposeEnabled}" ToolTipService.InitialShowDelay="100" Content="转发">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
                     <Setter Property="BorderBrush" Value="#FF818181" />
@@ -248,6 +248,11 @@
                     </Setter>
                 </Style>
             </CheckBox.Style>
+            <CheckBox.ToolTip>
+                <ToolTip Background="White">
+                    受B站接口限制，只能获取到大约500个最近转发的用户。扫码登录可缩短信息获取时间。
+                </ToolTip>
+            </CheckBox.ToolTip>
         </CheckBox>
         <CheckBox x:Name="CB_Condition_Comment" Grid.Row="1" Margin="185,192,480,184" IsChecked="{Binding Main.IsCommentEnabled}" Content="评论" Click="CB_Condition_Comment_Click">
             <CheckBox.Style>
