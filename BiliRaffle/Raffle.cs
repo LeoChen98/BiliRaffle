@@ -1289,7 +1289,7 @@ namespace BiliRaffle
         {
             int raffle_count = 0;
             Regex reg = new Regex("抽奖");
-            string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid={uid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+            string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid={uid}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
                 JObject obj = JObject.Parse(str);

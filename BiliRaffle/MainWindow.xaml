@@ -384,7 +384,7 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
-        <TextBlock x:Name="Lbl_Filter" Text="过滤抽奖号：" HorizontalAlignment="Left" Margin="30,290,0,0" Grid.Row="1" Height="20" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" />
+        <TextBlock x:Name="Lbl_Filter" Text="过滤抽奖号(需要登录)：" HorizontalAlignment="Left" Margin="30,284,0,0" Grid.Row="1" Height="40" Width="75" VerticalAlignment="Top" RenderTransformOrigin="0.5,2.95" TextWrapping="Wrap"/>
         <CheckBox x:Name="CB_Filter" Grid.Row="1" Margin="105,282,560,94" IsChecked="{Binding Main.Filter}">
             <CheckBox.Style>
                 <Style TargetType="{x:Type CheckBox}">
