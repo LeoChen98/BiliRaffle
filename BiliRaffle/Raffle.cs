@@ -1611,9 +1611,7 @@ namespace BiliRaffle
         /// <param name="OneChance">只有一次机会</param>
         private static Task T_Raffle_rAsync(string[] ids, bool OneChance = false)
         {
-            return Task.Run(() =>
-                T_Raffle_r(ids, OneChance)
-                );
+            return O_Raffle_rAsync(ids, OneChance);
         }
 
         /// <summary>
