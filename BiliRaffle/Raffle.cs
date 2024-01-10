@@ -1342,7 +1342,7 @@ namespace BiliRaffle
                     {"next", next.ToString()},
                     {"pagination_str", JsonConvert.SerializeObject(new Dictionary<string, string> { { "offset", offset } })}
                 });
-                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/wbi/main?{query}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/wbi/main?{query}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                 if (string.IsNullOrEmpty(str))
                 {
                     continue;
