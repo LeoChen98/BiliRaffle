@@ -64,6 +64,13 @@ namespace BiliRaffle
                     {
                         return null;
                     }
+                    // 登录成功后显示账户信息
+                    string str = Http.GetBody("https://api.bilibili.com/x/web-interface/nav", GetCookies(Cookies));
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        JObject obj = JObject.Parse(str);
+                        ViewModel.Main.PushMsg($"当前登录账号：{obj["data"]["uname"]}({obj["data"]["mid"]})");
+                    }
                     return _Cookies;
                 }
                 else
