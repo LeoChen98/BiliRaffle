@@ -917,13 +917,18 @@ namespace BiliRaffle
         /// <returns>oid</returns>
         private static string Get_O_Id_new(string id)
         {
-            string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-            if (string.IsNullOrEmpty(str)) return "";
-            JObject o = JObject.Parse(str);
-
-            if ((int)o["code"] == 0 && o["data"]["card"] != null)
+            string str;
+            JObject o;
+            if (_Cookies != null)
             {
-                return o["data"]["card"]["desc"]["rid"].ToString();
+                str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                if (string.IsNullOrEmpty(str)) return "";
+                o = JObject.Parse(str);
+
+                if ((int)o["code"] == 0 && o["data"]["card"] != null)
+                {
+                    return o["data"]["card"]["desc"]["rid"].ToString();
+                }
             }
 
             str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={id}", user_agent: _UserAgent);
@@ -944,13 +949,18 @@ namespace BiliRaffle
         /// <param name="oid">oid</param>
         private static string Get_T_Id(string oid)
         {
-            string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-            if (string.IsNullOrEmpty(str)) return "";
-            JObject o = JObject.Parse(str);
-
-            if ((int)o["code"] == 0 && o["data"]["card"] != null)
+            string str;
+            JObject o;
+            if (_Cookies != null)
             {
-                return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
+                str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                if (string.IsNullOrEmpty(str)) return "";
+                o = JObject.Parse(str);
+    
+                if ((int)o["code"] == 0 && o["data"]["card"] != null)
+                {
+                    return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
+                }    
             }
 
             str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={oid}", user_agent: _UserAgent);
