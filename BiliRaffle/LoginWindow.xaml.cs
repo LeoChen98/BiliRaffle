@@ -80,7 +80,7 @@ namespace BiliRaffle
         {
         re:
             //获取二维码要包含的url
-            string str = Http.GetBody("https://passport.bilibili.com/qrcode/getLoginUrl", null, "https://passport.bilibili.com/login");
+            string str = Http.GetBody("https://passport.bilibili.com/x/passport-login/web/qrcode/generate", null, "https://passport.bilibili.com/login");
             if (!string.IsNullOrEmpty(str))
             {
                 JObject obj = JObject.Parse(str);
@@ -107,7 +107,7 @@ namespace BiliRaffle
                         qrcodeBox.Source = imgsource;
                     });
 
-                    Monitor = new Timer(MonitorCallback, obj["data"]["oauthKey"].ToString(), 1000, 1000);
+                    Monitor = new Timer(MonitorCallback, obj["data"]["qrcode_key"].ToString(), 1000, 1000);
                     Refresher = new Timer(RefresherCallback, null, 180000, Timeout.Infinite);
                 }
             }
@@ -117,54 +117,47 @@ namespace BiliRaffle
         /// <summary>
         /// 监视器回调
         /// </summary>
-        /// <param name="o">oauthKey</param>
+        /// <param name="o">qrcodeKey</param>
         private void MonitorCallback(object o)
         {
-            string oauthKey = o.ToString();
+            string qrcodeKey = o.ToString();
 
-            string str = Http.PostBody("https://passport.bilibili.com/qrcode/getLoginInfo", "oauthKey=" + oauthKey + "&gourl=https%3A%2F%2Fwww.bilibili.com%2F", null, "application/x-www-form-urlencoded;charset=utf-8", "https://passport.bilibili.com/login");
+            string str = Http.GetBody($"https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcodeKey}", referer:"https://passport.bilibili.com/login");
             if (!string.IsNullOrEmpty(str))
             {
                 JObject obj = JObject.Parse(str);
 
-                if (obj.Property("code") != null)
+                if (obj.Property("code") != null && (int)obj["code"] == 0)
                 {
-                    if ((int)obj["code"] == 0)//登陆成功
+                    switch ((int)obj["data"]["code"])
                     {
-                        //关闭监视器
-                        Monitor.Change(Timeout.Infinite, Timeout.Infinite);
-                        Refresher.Change(Timeout.Infinite, Timeout.Infinite);
-
-                        string Querystring = Regex.Split(obj["data"]["url"].ToString(), "\\?")[1];
-                        string[] KeyValuePair = Regex.Split(Querystring, "&");
-                        string cookies = "";
-                        for (int i = 0; i < KeyValuePair.Length - 1; i++)
-                        {
-                            cookies += KeyValuePair[i] + "; ";
-                        }
-                        cookies = cookies.Substring(0, cookies.Length - 2);
-                        Raffle.Cookies = cookies;
-
-                        Dispatcher.Invoke(delegate ()
-                        {
-                            DialogResult = true;
-                            Close();
-                        });
-                    }
-                }
-                else
-                {
-                    switch ((int)obj["data"])
-                    {
-                        case -4://未扫描
+                        case 86101://未扫描
                             break;
 
-                        case -5://已扫描
+                        case 86090://已扫描
                             lbl_stauts.Dispatcher.Invoke(delegate () { lbl_stauts.Visibility = Visibility.Visible; });
                             break;
 
                         case 0://登陆成功
+                            //关闭监视器
+                            Monitor.Change(Timeout.Infinite, Timeout.Infinite);
+                            Refresher.Change(Timeout.Infinite, Timeout.Infinite);
 
+                            string Querystring = Regex.Split(obj["data"]["url"].ToString(), "\\?")[1];
+                            string[] KeyValuePair = Regex.Split(Querystring, "&");
+                            string cookies = "";
+                            for (int i = 0; i < KeyValuePair.Length - 1; i++)
+                            {
+                                cookies += KeyValuePair[i] + "; ";
+                            }
+                            cookies = cookies.Substring(0, cookies.Length - 2);
+                            Raffle.Cookies = cookies;
+
+                            Dispatcher.Invoke(delegate ()
+                            {
+                                DialogResult = true;
+                                Close();
+                            });
                             break;
                     }
                 }
