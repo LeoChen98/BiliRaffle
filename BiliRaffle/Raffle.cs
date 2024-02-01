@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -35,7 +38,17 @@ namespace BiliRaffle
 
         private static readonly string REPO = "LeoChen98/BiliRaffle";
         private static string _Cookies;
+        private static string _UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
         private static List<string> uids;
+
+        private static readonly int[] MixinKeyEncTab =
+        {
+            46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39,
+            12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40, 61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63,
+            57, 62, 11, 36, 20, 34, 44, 52
+        };
+        private static string _imgKey = "";
+        private static string _subKey = "";
 
         #endregion Private Fields
 
@@ -50,6 +63,13 @@ namespace BiliRaffle
                     if (!System.Windows.Application.Current.Dispatcher.Invoke(() => { return (bool)LoginWindow.Instance.ShowDialog(); }))
                     {
                         return null;
+                    }
+                    // 登录成功后显示账户信息
+                    string str = Http.GetBody("https://api.bilibili.com/x/web-interface/nav", GetCookies(Cookies));
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        JObject obj = JObject.Parse(str);
+                        ViewModel.Main.PushMsg($"当前登录账号：{obj["data"]["uname"]}({obj["data"]["mid"]})");
                     }
                     return _Cookies;
                 }
@@ -427,12 +447,82 @@ namespace BiliRaffle
         #endregion Public Methods
 
         #region Private Methods
+        
+        /// <summary>
+        /// 获取WBI签名所需的img_key和sub_key
+        /// </summary>
+        /// <returns></returns>
+        private static (string, string) GetWbiKeys()
+        {
+            if (string.IsNullOrEmpty(_imgKey) || string.IsNullOrEmpty(_subKey))
+            {
+                string str = Http.GetBody("https://api.bilibili.com/x/web-interface/nav", null);
+                if (!string.IsNullOrEmpty(str))
+                {
+                    JObject obj = JObject.Parse(str);
+                    string imgUrl = obj["data"]!["wbi_img"]!["img_url"]!.ToString();
+                    string subUrl = obj["data"]!["wbi_img"]!["sub_url"]!.ToString();
+                    string[] temp = imgUrl.Split('/');
+                    _imgKey = temp[temp.Length - 1].Split('.')[0];
+                    temp = subUrl.Split('/');
+                    _subKey = temp[temp.Length - 1].Split('.')[0];
+                }
+            }
+
+            return (_imgKey, _subKey);
+        }
+        
+        /// <summary>
+        /// 对imgKey和subKey进行字符顺序打乱编码
+        /// </summary>
+        /// <param name="orig">原始字符串</param>
+        /// <returns></returns>
+        private static string GetMixinKey(string orig)
+        {
+            return MixinKeyEncTab.Aggregate("", (s, i) => s + orig[i]).Substring(0, 32);
+        }
+        
+        /// <summary>
+        /// 对请求参数进行WBI签名
+        /// </summary>
+        /// <param name="parameters">请求参数</param>
+        /// <param name="imgKey"></param>
+        /// <param name="subKey"></param>
+        /// <returns>签名后的请求参数</returns>
+        private static string EncryptQueryWithWbiSign(Dictionary<string, string> parameters, string imgKey = null, string subKey = null)
+        {
+            if (string.IsNullOrEmpty(imgKey) || string.IsNullOrEmpty(subKey))
+            {
+                (imgKey, subKey) = GetWbiKeys();
+            }
+            string mixinKey = GetMixinKey(imgKey + subKey);
+            string currTime = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
+            // 添加 wts 字段
+            parameters["wts"] = currTime;
+            // 按照 key 重排参数
+            parameters = parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value);
+            // 过滤 value 中的 "!'()*" 字符
+            parameters = parameters.ToDictionary(
+                kvp => kvp.Key,
+                kvp => new string(kvp.Value.Where(chr => !"!'()*".Contains(chr)).ToArray())
+            );
+            // 序列化参数
+            string query = new FormUrlEncodedContent(parameters).ReadAsStringAsync().Result;
+            //计算 w_rid
+            using MD5 md5 = MD5.Create();
+            byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(query + mixinKey));
+            string wbiSign = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            parameters["w_rid"] = wbiSign;
+
+            return new FormUrlEncodedContent(parameters).ReadAsStringAsync().Result;
+        }
 
         /// <summary>
         /// 音频评论抽奖
         /// </summary>
         /// <param name="ids">au</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void A_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -497,6 +587,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">au</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task A_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -538,6 +629,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">cv</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void C_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -602,6 +694,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">cv</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task C_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -674,6 +767,8 @@ namespace BiliRaffle
         /// <param name="uids">uid数组</param>
         /// <param name="num">中奖数量</param>
         /// <param name="CheckFollow">是否检查关注</param>
+        /// <param name="Filter">是否过滤抽奖号</param>
+        /// <param name="FilterCondition">抽奖号阈值</param>
         /// <returns>中奖uid</returns>
         private static Task<string[]> DoRaffleAsync(string[] uids, int num, bool CheckFollow = false, bool Filter = true, int FilterCondition = 5)
         {
@@ -814,6 +909,39 @@ namespace BiliRaffle
             }
             return reg_Oid.Match(str).Groups[1].Value.ToString();
         }
+        
+        /// <summary>
+        /// 获取oid
+        /// </summary>
+        /// <param name="id">动态ID</param>
+        /// <returns>oid</returns>
+        private static string Get_O_Id_new(string id)
+        {
+            string str;
+            JObject o;
+            if (_Cookies != null)
+            {
+                str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                if (string.IsNullOrEmpty(str)) return "";
+                o = JObject.Parse(str);
+
+                if ((int)o["code"] == 0 && o["data"]["card"] != null)
+                {
+                    return o["data"]["card"]["desc"]["rid"].ToString();
+                }
+            }
+
+            str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={id}", user_agent: _UserAgent);
+            if (string.IsNullOrEmpty(str)) return "";
+            o = JObject.Parse(str);
+            if ((int)o["code"] == 0 && o["data"]["item"] != null)
+            {
+                return o["data"]["item"]["basic"]["rid_str"].ToString();
+            }
+
+            ViewModel.Main.PushMsg($"动态{id}不存在！");
+            return "";
+        }
 
         /// <summary>
         /// 获取真实动态id
@@ -821,30 +949,30 @@ namespace BiliRaffle
         /// <param name="oid">oid</param>
         private static string Get_T_Id(string oid)
         {
-            string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={oid}&type=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-            if (string.IsNullOrEmpty(pre_str)) return "";
-            JObject o = JObject.Parse(pre_str);
-
-            switch ((int)o["code"])
+            string str;
+            JObject o;
+            if (_Cookies != null)
             {
-                case 0:
-
+                str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                if (string.IsNullOrEmpty(str)) return "";
+                o = JObject.Parse(str);
+    
+                if ((int)o["code"] == 0 && o["data"]["card"] != null)
+                {
                     return o["data"]["card"]["desc"]["dynamic_id_str"].ToString();
-
-                case 500205:
-                    string pre_str_old = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={oid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
-                    {
-                        JObject oo = JObject.Parse(pre_str_old);
-                        if (oo["data"]["card"] != null)
-                            return oid;
-                    }
-                    ViewModel.Main.PushMsg($"动态{oid}不存在！");
-                    return "";
-
-                default:
-                    ViewModel.Main.PushMsg($"动态{oid}无效！");
-                    return "";
+                }    
             }
+
+            str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?id={oid}", user_agent: _UserAgent);
+            if (string.IsNullOrEmpty(str)) return "";
+            o = JObject.Parse(str);
+            if ((int)o["code"] == 0 && o["data"]["item"] != null)
+            {
+                return o["data"]["item"]["id_str"].ToString();
+            }
+
+            ViewModel.Main.PushMsg($"动态{oid}不存在！");
+            return "";
         }
 
         /// <summary>
@@ -923,20 +1051,20 @@ namespace BiliRaffle
         /// 获取cookies实例
         /// </summary>
         /// <param name="cookies">cookies文本</param>
+        /// <param name="domain">cookies所属的域</param>
         /// <returns>cookies实例</returns>
-        private static CookieCollection GetCookies(string cookies)
+        private static CookieCollection GetCookies(string cookies, string domain = "api.bilibili.com")
         {
             try
             {
                 CookieCollection public_cookie;
-                Uri target = new Uri("https://api.bilibili.com/x/relation/followers");
                 public_cookie = new CookieCollection();
                 cookies = cookies.Replace(",", "%2C");//转义“，”
                 string[] cookiestrs = Regex.Split(cookies, "; ");
                 foreach (string i in cookiestrs)
                 {
                     string[] cookie = Regex.Split(i, "=");
-                    public_cookie.Add(new Cookie(cookie[0], cookie[1]) { Domain = target.Host });
+                    public_cookie.Add(new Cookie(cookie[0], cookie[1]) { Domain = domain });
                 }
                 return public_cookie;
             }
@@ -953,7 +1081,11 @@ namespace BiliRaffle
         /// <returns></returns>
         private static string GetUName(string uid)
         {
-            string str = Http.GetBody($"https://api.bilibili.com/x/space/acc/info?mid={uid}", null, "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.78", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+            var query = EncryptQueryWithWbiSign(new Dictionary<string, string>
+            {
+                {"mid", uid}
+            });
+            string str = Http.GetBody($"https://api.bilibili.com/x/space/wbi/acc/info?{query}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
                 if (str.Contains("\"code\":0"))
@@ -974,6 +1106,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">相簿id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void H_Raffle(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
@@ -1032,6 +1165,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">相簿id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task H_RaffleAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -1159,7 +1293,7 @@ namespace BiliRaffle
         {
             int raffle_count = 0;
             Regex reg = new Regex("抽奖");
-            string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid={uid}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+            string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid={uid}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
             if (!string.IsNullOrEmpty(str))
             {
                 JObject obj = JObject.Parse(str);
@@ -1185,6 +1319,64 @@ namespace BiliRaffle
         }
 
         /// <summary>
+        /// 动态评论抽奖（支持普通动态和综合动态）
+        /// </summary>
+        /// <param name="id">动态ID</param>
+        /// <param name="oneChance">只有一次机会</param>
+        /// <param name="isRepliesInFloors">楼中楼</param>
+        /// <returns></returns>
+        private static int Dynamic_Raffle_Comment(string id, bool oneChance, bool isRepliesInFloors)
+        {
+            int ucount = 0;
+            string oid = Get_O_Id_new(id);
+            int next = 0;
+            bool is_end = false;
+            string offset = "";
+            while (!is_end)
+            {
+                var query = EncryptQueryWithWbiSign(new Dictionary<string, string>
+                {
+                    {"oid", oid},
+                    {"type", "11"},
+                    {"mode", "2"},
+                    {"next", next.ToString()},
+                    {"pagination_str", JsonConvert.SerializeObject(new Dictionary<string, string> { { "offset", offset } })}
+                });
+                string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/wbi/main?{query}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                if (string.IsNullOrEmpty(str))
+                {
+                    continue;
+                }
+                JObject obj = JObject.Parse(str);
+                if ((int)obj["code"] != 0)
+                {
+                    continue;
+                }
+
+                next = (int)obj["data"]["cursor"]["next"];
+                is_end = (bool)obj["data"]["cursor"]["is_end"];
+                offset = (string)obj["data"]["cursor"]["pagination_reply"]["next_offset"];
+
+                foreach (JToken token in obj["data"]["replies"])
+                {
+                    ucount += AddUid(token["member"]["mid"].ToString(), oneChance);
+
+                    if (isRepliesInFloors)
+                    {
+                        foreach (JToken sub_token in token["replies"])
+                        {
+                            ucount += AddUid(sub_token["member"]["mid"].ToString(), oneChance);
+                        }
+                    }
+                }
+
+                Thread.Sleep(500);
+            }
+
+            return ucount;
+        }
+        
+        /// <summary>
         /// 综合动态评论抽奖
         /// </summary>
         /// <param name="ids">oid</param>
@@ -1192,44 +1384,9 @@ namespace BiliRaffle
         /// <param name="isRepliesInFloors">楼中楼</param>
         private static void O_Raffle_c(string[] ids, bool oneChance, bool isRepliesInFloors)
         {
-            int ucount = 0;
             foreach (string id in ids)
             {
-                string oid = Get_O_Id($"https://www.bilibili.com/opus/{id}");
-                int next = 0;
-                bool is_end = false;
-                while (!is_end)
-                {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply/main?mode=2&next={next}&oid={oid}&plat=1&type=11", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
-                    if (string.IsNullOrEmpty(str))
-                    {
-                        continue;
-                    }
-                    JObject obj = JObject.Parse(str);
-                    if ((int)obj["code"] != 0)
-                    {
-                        continue;
-                    }
-
-                    next = (int)obj["data"]["cursor"]["next"];
-                    is_end = (bool)obj["data"]["cursor"]["is_end"];
-
-                    foreach (JToken token in obj["data"]["replies"])
-                    {
-                        ucount += AddUid(token["member"]["mid"].ToString(), oneChance);
-
-                        if (isRepliesInFloors)
-                        {
-                            foreach (JToken sub_token in token["replies"])
-                            {
-                                ucount += AddUid(sub_token["member"]["mid"].ToString(), oneChance);
-                            }
-                        }
-                    }
-
-                    Thread.Sleep(500);
-                }
-
+                int ucount = Dynamic_Raffle_Comment(id, oneChance, isRepliesInFloors);
                 ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid评论");
             }
         }
@@ -1247,7 +1404,7 @@ namespace BiliRaffle
                 O_Raffle_c(ids, oneChance, isRepliesInFloors);
             });
         }
-
+        
         /// <summary>
         /// 综合动态转发抽奖
         /// </summary>
@@ -1262,7 +1419,7 @@ namespace BiliRaffle
                 string offset = "";
                 while (has_more)
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/forward?id={id}&offset={offset}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/forward?id={id}&offset={offset}", null, "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
                     if (string.IsNullOrEmpty(str))
                     {
                         continue;
@@ -1281,9 +1438,52 @@ namespace BiliRaffle
                         ucount += AddUid(token["user"]["mid"].ToString(), oneChance);
                     }
 
-                    Thread.Sleep(500);
+                    Thread.Sleep(10000);
                 }
 
+                ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid转发");
+            }
+        }
+
+        private static void O_Raffle_r_new(string[] ids, bool oneChance)
+        {
+            foreach (string id in ids)
+            {
+                int ucount = 0;
+                bool has_more = true;
+                string offset = "";
+                while (has_more)
+                {
+                    string str = Http.GetBody($"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail/reaction?id={id}&offset={offset}", GetCookies(Cookies), "", _UserAgent, new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
+                    if (string.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+                    JObject obj = JObject.Parse(str);
+                    if ((int)obj["code"] != 0)
+                    {
+                        break;
+                    }
+                    
+                    foreach (JToken token in obj["data"]["items"])
+                    {
+                        if (token["action"].ToString() == "转发了")
+                        {
+                            ucount += AddUid(token["mid"].ToString(), oneChance);
+                        }
+                    }
+                    
+                    offset = obj["data"]["offset"].ToString();
+                    has_more = (bool)obj["data"]["has_more"];
+
+                    JObject offsetObj = JObject.Parse(offset);
+                    if (offsetObj["repost"].ToString() == "-1") // 此时接口不再返回转发数据
+                    {
+                        break;
+                    }
+                    
+                    Thread.Sleep(500);
+                }
                 ViewModel.Main.PushMsg($"综合动态{id}下共统计到{ucount}个（次）uid转发");
             }
         }
@@ -1295,6 +1495,14 @@ namespace BiliRaffle
         /// <param name="oneChance">只有一次机会</param>
         private static Task O_Raffle_rAsync(string[] ids, bool oneChance)
         {
+            ViewModel.Main.PushMsg("请扫码登录以缩短转发列表获取时间。请注意，转发列表只能获取约500个最近转发的用户。");
+            if (Cookies != null)
+            {
+                return Task.Run(() =>
+                {
+                    O_Raffle_r_new(ids, oneChance);
+                });
+            }
             return Task.Run(() =>
             {
                 O_Raffle_r(ids, oneChance);
@@ -1306,19 +1514,20 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void T_Raffle_c(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             foreach (var id in ids)
             {
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的评论");
-                string pre_str = Http.GetBody($"https://api.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                string pre_str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?dynamic_id={id}", GetCookies(Cookies, "api.vc.bilibili.com"), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                 if (string.IsNullOrEmpty(pre_str)) return;
                 JObject o = JObject.Parse(pre_str);
                 if ((int)o["code"] != 0) return;
                 switch ((int)o["data"]["card"]["desc"]["type"])
                 {
-                    case 2: //画簿
-                        goto H_C;
+                    // case 2: //画簿
+                    //     goto H_C;
 
                     case 8: //视频
                         goto V_C;
@@ -1333,50 +1542,7 @@ namespace BiliRaffle
                         break;
                 }
 
-                H_Reply_Data obj = new H_Reply_Data();
-                int i = 1, ucount = 0;
-                do
-                {
-                    string str = Http.GetBody($"https://api.bilibili.com/x/v2/reply?jsonp=json&pn={i}&type=17&oid={id}&sort=2", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.bilibili.com" } });
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        obj = JsonConvert.DeserializeObject<H_Reply_Data>(str);
-                        if (obj.code == 0)
-                        {
-                            if (i == 1) ViewModel.Main.PushMsg($"动态{id}共有{obj.data.page.count}条评论。开始统计uid...");
-
-                            if (obj.data.replies != null && obj.data.replies.Length != 0)
-                            {
-                                foreach (H_Reply_Data.Data.Replies_Item reply in obj.data.replies)
-                                {
-                                    ucount += AddUid(reply.mid.ToString(), OneChance);
-
-                                    if (IsRepliesInFloors)
-                                    {
-                                        if (reply.rcount > 0 && reply.rcount <= 3 && reply.replies != null)
-                                        {
-                                            foreach (H_Reply_Data.Data.Replies_Item j in reply.replies)
-                                            {
-                                                ucount += AddUid(j.mid, OneChance);
-                                            }
-                                        }
-                                        else if (reply.rcount > 3)
-                                        {
-                                            foreach (string mid in Get_T_RepliesInFloors(id, reply.rpid))
-                                            {
-                                                ucount += AddUid(mid, OneChance);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    i++;
-
-                    Thread.Sleep(500);
-                } while (obj.data.page.num * obj.data.page.size < obj.data.page.count);
-
+                int ucount = Dynamic_Raffle_Comment(id, OneChance, IsRepliesInFloors);
                 ViewModel.Main.PushMsg($"动态{id}下共统计到{ucount}个（次）uid评论");
                 return;
 
@@ -1407,6 +1573,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task T_Raffle_cAsync(string[] ids, bool OneChance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
@@ -1429,7 +1596,7 @@ namespace BiliRaffle
                 ViewModel.Main.PushMsg($"开始收集动态{id}下的转发");
                 while (Data.has_more == 1)
                 {
-                    string str = Http.GetBody($"https://api.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", null, "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
+                    string str = Http.GetBody($"https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost_detail?dynamic_id={id}{(i == 0 ? "" : $"&offset={Data.offset}")}", GetCookies(Cookies), "", "", new WebHeaderCollection { { HttpRequestHeader.Host, "api.vc.bilibili.com" } });
                     Debug.WriteLine(str);
                     if (!string.IsNullOrEmpty(str))
                     {
@@ -1461,14 +1628,11 @@ namespace BiliRaffle
         /// <summary>
         /// 动态抽奖(异步)
         /// </summary>
-        /// <param name="id">动态id(c_id)</param>
-        /// <param name="num">中奖人数</param>
+        /// <param name="ids">动态id</param>
         /// <param name="OneChance">只有一次机会</param>
         private static Task T_Raffle_rAsync(string[] ids, bool OneChance = false)
         {
-            return Task.Run(() =>
-                T_Raffle_r(ids, OneChance)
-                );
+            return O_Raffle_rAsync(ids, OneChance);
         }
 
         /// <summary>
@@ -1476,6 +1640,7 @@ namespace BiliRaffle
         /// </summary>
         /// <param name="ids">视频id（含av/bv)</param>
         /// <param name="onechance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static void V_Raffle(string[] ids, bool onechance = false, bool IsRepliesInFloors = true)
         {
             Regex reg = new Regex("BV[A-Za-z0-9]{10}");
@@ -1544,6 +1709,12 @@ namespace BiliRaffle
             }
         }
 
+        /// <summary>
+        /// 视频抽奖收集
+        /// </summary>
+        /// <param name="ids">视频id（含av/bv)</param>
+        /// <param name="onechance">只有一次机会</param>
+        /// <param name="IsRepliesInFloors">楼中楼</param>
         private static Task V_RaffleAsync(string[] ids, bool onechance = false, bool IsRepliesInFloors = true)
         {
             return Task.Run(() =>
