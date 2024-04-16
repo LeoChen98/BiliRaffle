@@ -1,6 +1,7 @@
 ﻿using DmCommons;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Sentry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -241,7 +242,7 @@ namespace BiliRaffle
             }
             catch (Exception ex)
             {
-                Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
+                SentrySdk.CaptureException(new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
             }
         }
 
@@ -436,11 +437,11 @@ namespace BiliRaffle
                     }
                 }
 
-                Github.Send(REPO, new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors, aex_detail }));
+                SentrySdk.CaptureException(new ExceptionEx(aex.Message, aex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors, aex_detail }));
             }
             catch (Exception ex)
             {
-                Github.Send(REPO, new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
+                SentrySdk.CaptureException(new ExceptionEx(ex.Message, ex, new object[] { urlText, num, IsReposeEnabled, IsCommentEnabled, OneChance, CheckFollow, Filter, FilterCondition, IsRepliesInFloors }));
             }
         }
 
@@ -1068,8 +1069,9 @@ namespace BiliRaffle
                 }
                 return public_cookie;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
                 return null;
             }
         }

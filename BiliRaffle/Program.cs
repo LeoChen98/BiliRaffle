@@ -1,4 +1,5 @@
 ﻿using DmCommons;
+using Sentry;
 using System;
 using System.Diagnostics;
 using System.Management;
@@ -15,67 +16,38 @@ namespace BiliRaffle
     {
         #region Private Methods
 
-        private static string GetCPUInfo()
-        {
-            using (ManagementClass cimobject = new ManagementClass("Win32_Processor"))
-            {
-                using (ManagementObjectCollection moc = cimobject.GetInstances())
-                {
-                    string strCpuID = null;
-                    foreach (ManagementObject mo in moc)
-                    {
-                        strCpuID = mo.Properties["ProcessorId"].Value.ToString();
-                        break;
-                    }
-                    return strCpuID;
-                }
-            }
-        }
-
-        private static string GetMainDriveId()
-        {
-            using (ManagementClass mc = new ManagementClass("Win32_PhysicalMedia"))
-            {
-                using (ManagementObjectCollection moc = mc.GetInstances())
-                {
-                    string strID = null;
-                    foreach (ManagementObject mo in moc)
-                    {
-                        strID = mo.Properties["SerialNumber"].Value.ToString();
-                        break;
-                    }
-                    return strID;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 获得16位的MD5加密
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private static string GetMD5_16(string input)
-        {
-            return GetMD5_32(input).Substring(8, 16);
-        }
-
-        /// 获得32位的MD5加密 </summary> <param name="input"></param> <returns></returns>
-        private static string GetMD5_32(string input)
-        {
-            MD5 md5 = MD5.Create();
-            byte[] data = md5.ComputeHash(Encoding.Default.GetBytes(input));
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
-            {
-                sb.AppendFormat("{0:X2}", data[i]);
-            }
-            return sb.ToString();
-        }
-
         [STAThread]
         private static void Main(string[] args)
         {
             System.Windows.Application app = new System.Windows.Application();
+
+            //初始化统计组件
+            SentrySdk.Init(options =>
+            {
+                // A Sentry Data Source Name (DSN) is required.
+                // See https://docs.sentry.io/product/sentry-basics/dsn-explainer/
+                // You can set it in the SENTRY_DSN environment variable, or you can set it in code here.
+                options.Dsn = "https://acdc5324b9bd28eb137011a3b84c8f76@o4507091526352896.ingest.us.sentry.io/4507095501570048";
+
+                // When debug is enabled, the Sentry client will emit detailed debugging information to the console.
+                // This might be helpful, or might interfere with the normal operation of your application.
+                // We enable it here for demonstration purposes when first trying Sentry.
+                // You shouldn't do this in your applications unless you're troubleshooting issues with Sentry.
+                options.Debug = false;
+
+                // This option is recommended. It enables Sentry's "Release Health" feature.
+                options.AutoSessionTracking = true;
+
+                // Enabling this option is recommended for client applications only. It ensures all threads use the same global scope.
+                options.IsGlobalModeEnabled = true;
+
+                // This option will enable Sentry's tracing features. You still need to start transactions and spans.
+                options.EnableTracing = true;
+
+                // Example sample rate for your transactions: captures 10% of transactions
+                options.TracesSampleRate = 0.1;
+            });
+
             if (args.Length > 0)
             {
                 for (int i = 0; i < args.Length; i++)
@@ -132,17 +104,7 @@ namespace BiliRaffle
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
-            if (!ViewModel.Main.AsPlugin) User_Statistics();
             app.Run(new MainWindow());
-        }
-
-        private static void User_Statistics()
-        {
-            string cpu = GetCPUInfo();
-            string drive = GetMainDriveId();
-            string info = GetMD5_16(cpu + drive);
-            string json = $"{{\"pid\":119,\"version\":{Assembly.GetExecutingAssembly().GetName().Version.Revision},\"token\":\"{info}\"}}";
-            Http.PostBody("https://cloud.api.zhangbudademao.com/public/User_Statistics", json, null, "application/json; charset=UTF-8");
         }
 
         #endregion Private Methods
